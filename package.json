@@ -1,7 +1,7 @@
 {
-  "name": "cptX",
-  "displayName": "cptX",
-  "description": "ChatGPT as you Copilot",
+  "name": "cptx",
+  "displayName": "cptX: ChatGPT as Copilot",
+  "description": "Use ChatGPT as your free copilot",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.77.0"
@@ -9,13 +9,38 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "chatgpt",
+    "openai",
+    "gpt3",
+    "copilot",
+    "flutter",
+    "dart",
+    "c#",
+    "java",
+    "javascript",
+    "typescript",
+    "ai",
+    "create",
+    "refactor"
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "cptX",
+      "type": "object",
+      "properties": {
+        "cptx.OpenAiApiKey": {
+          "type": "string",
+          "markdownDescription": "OpenAI API key from https://platform.openai.com/account/api-keys"
+        }
+      }
+    },
     "commands": [
       {
         "command": "cptX.createOrRefactor",
-        "title": "Create new or refactor existing code"
+        "title": "cptX: Create new OR refactor existing code"
       }
     ]
   },
