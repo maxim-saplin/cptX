@@ -35,7 +35,9 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                     ({ aboveText, belowText, cursorLine } = getCodeAroundCursor(editor));
                 }
 
-                let prompt = compilePrompt(whatToDo, selectedCode, aboveText, belowText);
+                let {developer, language} = getDeveloperAndLanguage(editor);
+
+                let prompt = compilePrompt(whatToDo, selectedCode, aboveText, belowText, developer, language);
 
                 //console.log(prompt);
 
@@ -77,23 +79,26 @@ export async function createOrRefactor(openAi: OpenAIApi) {
     }
 }
 
-function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: string, belowText: string) {
-    let prompt = `You're an expert Flutter developer. Produce a valid Dart code block based on the following instructions:\n${whatToDo}\n\n`;
+function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: string, belowText: string, developer: string, language: string) {
+    if (language.trim().length !== 0) {
+        language = ' ' + language;
+    }
+    let prompt = `You're an expert ${developer} software engineer. Produce a valid${language} code block (use${language} comments if you want to add something in order not to produce non-compilable code) based on the following request:\n${whatToDo}\n\n`;
     const refactor = refactorBlock.trim().length > 0;
 
     if (refactor) {
 
-        prompt += `☝ Assume that the produced code block will be replacing the following existing code block→\n${refactorBlock}\n\n`;
+        prompt += `☝ Assume that the produced code block will replace the following existing code block. Either change it according to the request OR add comments if no changes are required→\n${refactorBlock}\n\n`;
     }
 
-    prompt += `☝ Should you have any suggestions (e.g. adding imports above or changing some surrounding parts of the code), add them as instructions before the produced code block. Inline comments are also welcome.\n\n`;
+    prompt += `☝ Should you have any suggestions add them as as${language} comments at the top the produced code block. Inline comments are also welcome.\n\n`;
     prompt += `☝ To give you more context, here's `;
     if (aboveText.length > 0) {
-        prompt += `the code above the line where you're asked to insert the code→\n${aboveText}\n\n`;
+        prompt += refactor ? `the code above the code block you're asked to change→\n${aboveText}\n\n` : `the code above the line where you're asked to insert the code→\n${aboveText}\n\n`;
     }
     if (belowText.length > 0) {
         if (aboveText.length > 0) { prompt += `And here's `; }
-        prompt += `the code below the line where you're asked to insert the code→\n${belowText}\n\n`;
+        prompt += refactor ? `the code below the code block you're asked to change→\n${belowText}\n\n` : `the code below the line where you're asked to insert the code→\n${belowText}\n\n`;
     };
     return prompt;
 }
@@ -165,4 +170,71 @@ async function getGptReply(openAi: OpenAIApi, prompt: string) {
     });
     let reply = completion.data.choices[0].message?.content ?? '';
     return reply;
+}
+
+function getLanguageId(editor: vscode.TextEditor) {
+    const languageId = editor.document.languageId;
+    return languageId;
+}
+
+function getDeveloperAndLanguage(editor: vscode.TextEditor) {
+    let developer = '';
+    let language = '';
+    const languageId = getLanguageId(editor);
+
+    switch (languageId) {
+          case "dart":
+            language = "Dart";
+            developer = "Flutter";
+            break;
+          case "javascript":
+            language = "JavaScript";
+            developer = "Full-stack";
+            break;
+          case "typescript":
+            language = "TypeScript";
+            developer = "Full-stack";
+            break;
+          case "python":
+            language = "Python";
+            developer = "Back-end";
+            break;
+          case "java":
+            language = "Java";
+            developer = "Back-end";
+            break;
+          case "csharp":
+            language = "C#";
+            developer = ".NET";
+            break;
+          case "go":
+            language = "Go";
+            developer = "Back-end";
+            break;
+          case "ruby":
+            language = "Ruby";
+            developer = "Back-end";
+            break;
+          case "rust":
+            language = "Rust";
+            developer = "Systems";
+            break;
+          case "html":
+            language = "HTML";
+            developer = "Front-end";
+            break;
+          case "css":
+            language = "CSS";
+            developer = "Front-end";
+            break;
+          case "json":
+            language = "JSON";
+            break;
+          case "yaml":
+            language = "YAML";
+            developer = "DevOps";
+            break;
+      }
+
+    return { developer, language };
 }
