@@ -1,9 +1,9 @@
 {
   "name": "cptx",
   "displayName": "cptX: ChatGPT as Copilot",
-  "description": "Use ChatGPT as your free copilot",
+  "description": "Use ChatGPT as your (aslmost)free copilot",
   "version": "0.0.1",
-  "publisher": "Maxim Saplin",
+  "publisher": "MaximSaplin",
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.77.0"
