@@ -1,6 +1,8 @@
 # Use ChatGPT as your (almost)free copilot
 Save time for copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding your cursor or selection), primes the model by asking it to act as expert in the given technology/language, sends your prompt and insert the returned code block.
 
+![Into](images/intro.gif)
+
 The extension is a great addition to Amazon CodeWhisperer or Github Copilot if you are missing the ability to explicitly ask of a larger scope task.
 
 ## How to use
@@ -31,8 +33,8 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 - The context is limited by whatever code is in the current file, no knowledge of project structure or other files
 - The extension doesn't add imports when new dependencies are introduced in created code
 
-## How is it different from Amazon Codewhisperer and GitHub Copilot
-- Unlike Codewhisperer the extension can work with any programming language or technology. E.g. Flutter and Dart are supported (while no available in Codewhisperer)
+## How is it different from Amazon CodeWhisperer and GitHub Copilot
+- Unlike CodeWhisperer the extension can work with any programming language or technology. E.g. Flutter and Dart are supported (while no available in CodeWhisperer)
 - It is not an uncommon opinion over the internet (as of April 2023) that ChatGPT is better at coding than both options.
 - It's almost free. CoPilot costs you $20 monthly or $100 yearly. Even with heavy usage it's unlikely you'll exceed $1 monthly bill.
 - Oh, and you don't have to enter credit card details (as with GH Copilot) to start free 3 month trial with $5 monthly for OpenAI API (as of April 2023).
