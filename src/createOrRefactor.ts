@@ -41,6 +41,8 @@ export async function createOrRefactor(openAi: OpenAIApi) {
 
                 let prompt = compilePrompt(whatToDo, selectedCode, aboveText, belowText, expert, language);
 
+                console.log(prompt);
+
                 const result = await common.getGptReply(openAi,  prompt);
                 clearInterval(interval);
                 progress.report({ increment: 100 });
@@ -77,31 +79,34 @@ function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: strin
         profile = 'software developer';
     }
 
-    let prompt = `☝☝☝ You're an expert ${profile} asked to produce a valid${language} code block based on the following request:\n\n${whatToDo}\n\n`;
+    let prompt = `You're an expert ${profile} who is asked of coding assistance.\n`;
+    prompt += `☝ Produce a valid${language} code block\n`;
+    prompt += `☝ Be concise\n`;
+    prompt += `☝ No free text, use${language} comments if necessary\n`;
     const refactor = refactorBlock.trim().length > 0;
 
     if (refactor) {
-        prompt += `☝☝☝ The produced code block will replace the eixsting code block which is located between '↓↓↓' and '↑↑↑' in the following source code→\n`;
-        prompt += aboveText+'\n↓↓↓\n';
-        prompt += refactorBlock+'\n↑↑↑\n';
-        prompt += belowText+'\n\n';
-        prompt += `☝☝☝ The produced code block will be inserted in the location between '↓↓↓' and '↑↑↑'\n`;
-        prompt += `☝☝☝ Do not repeat whatever is present in the provided source code above '↓↓↓' and below '↑↑↑'\n`;
+        prompt += `Change the following code block:\n\n\n\n\n\n\n`;
+        prompt += refactorBlock+'\n\n\n\n\n\n\n';
+        prompt += `☝ ${whatToDo}\n\n`;
     }
     else {
-        prompt += `☝☝☝ The produced code block will be inserted in the location marked by '→→→' in the following source code→\n`;
+        prompt += `Produce a code block that will be inserted directly into VSCode editor in the location marked by '→→→' in the following source code:\n`;
         prompt += aboveText+'\n\n'+belowText;
+        prompt += `☝${whatToDo}\n\n`;
     }
-    prompt += `☝☝☝ Make sure whatever you're producing is valid${language} code and it doesn't break anything in the source file.`;
-    prompt += `☝☝☝ Be as concise as possible, you code will simply be pasted into the source code`;
 
-    // prompt += `☝ To give you more context, here's `;
-    // if (aboveText.length > 0) {
-    //     prompt += refactor ? `the code above the code block you're asked to change→\n${aboveText}\n\n` : `the code above the line where you're asked to insert the code→\n${aboveText}\n\n`;
-    // }
-    // if (belowText.length > 0) {
-    //     if (aboveText.length > 0) { prompt += `And here's `; }
-    //     prompt += refactor ? `the code below the code block you're asked to change→\n${belowText}\n\n` : `the code below the line where you're asked to insert the code→\n${belowText}\n\n`;
-    // };
+    if (refactor && aboveText.trim().length !== 0 && belowText.trim().length !== 0) {
+        prompt += `\nFor the context. `;
+        if (aboveText.trim().length !== 0) {
+            prompt += `Here's the code above:\n\n\n\n\n\n\n`;
+            prompt += aboveText+`\n\n\n\n\n\n\n`;
+        }
+        if (aboveText.trim().length !== 0) {
+            prompt += `Here's the code below:\n\n\n\n\n\n\n`;
+            prompt += belowText+`\n\n\n\n\n\n\n`;
+        }
+    }
+    
     return prompt;
 }
