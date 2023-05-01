@@ -1,5 +1,5 @@
 # Use ChatGPT as your (almost)free copilot
-Save time for copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding your cursor or selection), primes the model by asking it to act as expert in the given technology/language, sends your prompt and insert the returned code block.
+Save time not copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding your cursor or selection), primes the model by asking it to act as expert in the given technology/language, sends your prompt and insert the returned code block.
 
 ![Into](images/intro.gif)
 
