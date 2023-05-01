@@ -42,6 +42,10 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 
 ## Release Notes
 
+### 0.0.2
+
+Description texts fixed
+
 ### 0.0.1
 
 Initial release of the the extension
