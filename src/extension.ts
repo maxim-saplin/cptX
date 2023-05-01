@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { createOrRefactor } from './createOrRefactor';
 import { Configuration, OpenAIApi} from "openai";
+import { explainOrAsk } from './explain';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -20,14 +21,8 @@ export function activate(context: vscode.ExtensionContext) {
 		}
     });
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('cptX.createOrRefactor', () => createOrRefactor(openAi));
-
-	context.subscriptions.push(disposable);
-
-
+	context.subscriptions.push(vscode.commands.registerCommand('cptX.createOrRefactor', () => createOrRefactor(openAi)));
+	context.subscriptions.push(vscode.commands.registerCommand('cptX.explainOrAsk', () => explainOrAsk(openAi)));
 }
 
 // This method is called when your extension is deactivated

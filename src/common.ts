@@ -27,7 +27,7 @@ function getCodeAroundCursor(editor: vscode.TextEditor) {
     return { aboveText, belowText, cursorLine };
 }
 
-function getCodeAroundSelection(editor: vscode.TextEditor) {
+function getTextAroundSelection(editor: vscode.TextEditor) {
     const maxWords = 2500;
 
     let lineAbove = editor.selection.start.line - 1;
@@ -35,7 +35,9 @@ function getCodeAroundSelection(editor: vscode.TextEditor) {
     ({ lineAbove, lineBelow } = calculateLineBoundariesWithMaxWordsLimmits(lineAbove, lineBelow, editor, maxWords));
 
     var aboveText = editor.document.getText(new vscode.Range(lineAbove, 0, editor.selection.start.line, 0));
-    var belowText = editor.document.getText(new vscode.Range(editor.selection.end.line + 1, 0, lineBelow, 0));
+    var belowText = editor.document.getText(new vscode.Range(editor.selection.end.line 
+      // Don't add 1 line if there's something selected
+      + (editor.selection.isEmpty ? 0 : 1), 0, lineBelow, 0));
     return { aboveText, belowText };
 }
 
@@ -159,7 +161,7 @@ function getElapsedSeconds(start: number): string {
 export { 
     updateProgress, 
     getCodeAroundCursor, 
-    getCodeAroundSelection, 
+    getTextAroundSelection as getCodeAroundSelection, 
     getGptReply, 
     getLanguageId, 
     getExpertAndLanguage, 

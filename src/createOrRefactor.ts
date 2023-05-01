@@ -4,6 +4,7 @@ import * as common from './common';
 import { performance } from "perf_hooks";
 
 export async function createOrRefactor(openAi: OpenAIApi) {
+    let interval = undefined;
     try {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
@@ -25,7 +26,7 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                 cancellable: true
             }, 
             async (progress) => {
-                const interval = common.updateProgress(progress, undefined);
+                interval = common.updateProgress(progress, start);
 
                 const selectedCode = editor.document.getText(editor.selection).trim();
                 const refactor = selectedCode.length > 0;
@@ -43,7 +44,7 @@ export async function createOrRefactor(openAi: OpenAIApi) {
 
                 let prompt = compilePrompt(whatToDo, selectedCode, aboveText, belowText, expert, language);
 
-                //console.log(prompt);
+                console.log(prompt);
 
                 const result = await common.getGptReply(openAi,  prompt);
                 clearInterval(interval);
@@ -67,6 +68,9 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                 vscode.window.showInformationMessage('cptX completed operation (${common.getElapsed(start)}s)');
             });
     } catch (error) {
+        if (interval !== undefined) {
+            clearInterval(interval);
+        }
         vscode.window.showErrorMessage(`cptX failed to generate code: ${error}`);
     }
 }
@@ -92,9 +96,18 @@ function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: strin
         prompt += `☝ ${whatToDo}\n\n`;
     }
     else {
-        prompt += `Produce a code block that will be inserted directly into VSCode editor in the location marked by '→→→' in the following source code:\n`;
-        prompt += aboveText+'\n\n'+belowText;
-        prompt += `☝${whatToDo}\n\n`;
+        const above = aboveText.split('\n').slice(-7).join('\n');
+        const below = belowText.split('\n').slice(0, 7).join('\n');
+
+        prompt += `Produce a code block that will be inserted directly into VSCode editor in the following source code:\n\n\n\n\n\n\n`;
+        prompt += aboveText+belowText+'\n\n\n\n\n\n\n';
+        if (above.trim().length !== 0) {
+            prompt += `after the lines:\n\n`+above+`\n\n`;
+        }
+        else if (below.trim().length !== 0) {
+            prompt += `before the lines:\n\n`+below+`\n\n`;
+        }
+        prompt += `Follow the instruction: ${whatToDo}`;
     }
 
     if (refactor && aboveText.trim().length !== 0 && belowText.trim().length !== 0) {

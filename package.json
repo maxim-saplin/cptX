@@ -8,6 +8,9 @@
   "engines": {
     "vscode": "^1.77.0"
   },
+  "repository": {
+    "url": "https://github.com/maxim-saplin/cptX"
+  },
   "categories": [
     "Other"
   ],
@@ -43,6 +46,10 @@
       {
         "command": "cptX.createOrRefactor",
         "title": "cptX: Create new OR refactor existing code"
+      },
+      {
+        "command": "cptX.explainOrAsk",
+        "title": "cptX: Explain (leave blnak) or ask question"
       }
     ]
   },

@@ -1,26 +1,103 @@
 import { OpenAIApi } from "openai";
 import * as vscode from 'vscode';
 import * as common from './common';
+import { performance } from "perf_hooks";
 
-async function explain(openAi: OpenAIApi) {
-    try {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        return vscode.window.showErrorMessage('No active editor');
-      }
-      const selectedCode = editor.document.getText(editor.selection).trim();
-      if (selectedCode.length === 0) {
-        return vscode.window.showErrorMessage('Please select some code to explain');
-      }
-
-      let { aboveText, belowText } = common.getCodeAroundSelection(editor);
-  
-      const prompt = `Please explain the selected code or provide advice:\n\n${selectedCode}`;
-  
-      const explanation = await common.getGptReply(openAi, prompt);
-      vscode.window.showInformationMessage(explanation);
-  
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to generate explanation: ${error}`);
+async function explainOrAsk(openAi: OpenAIApi) {
+  let interval = undefined;
+  try {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return vscode.window.showErrorMessage('No active editor');
     }
-  } 
+
+    const selectedCode = editor.document.getText(editor.selection).trim();
+
+    // If empty - ask to explain
+    const request = await vscode.window.showInputBox({ prompt: "What can I do for you?" }) ?? '';
+
+
+    const start = performance.now(); // start stopwatch
+
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "cptX is working on your request",
+        cancellable: true
+      },
+      async (progress) => {
+        interval = common.updateProgress(progress, start);
+        let { aboveText, belowText } = common.getCodeAroundSelection(editor);
+
+        let { expert, language } = common.getExpertAndLanguage(editor);
+        const prompt = compilePrompt(request, selectedCode, aboveText, belowText, expert, language);
+        console.log(prompt);
+
+        const explanation = await common.getGptReply(openAi, prompt);
+        vscode.window.showInformationMessage(explanation, { modal: true });
+
+        vscode.window.showInformationMessage('cptX completed operation ('+common.getElapsed(start)+'s)');
+      });
+
+  } catch (error) {
+    if (interval !== undefined) {
+      clearInterval(interval);
+    }
+    vscode.window.showErrorMessage(`Failed to generate explanation: ${error}`);
+  }
+}
+
+function compilePrompt(request: string, selectedText: string, aboveText: string, belowText: string, profile: string, language: string) {
+  if (language.trim().length !== 0) {
+    language = ' ' + language;
+  }
+
+  if (profile.trim().length === 0) {
+    profile = 'software developer';
+  }
+
+  let prompt = `You're an expert ${profile}`;
+
+  if (language.trim().length !== 0) {
+    prompt += ` experienced in ${language}`;
+  }
+
+  if (selectedText.trim().length !== 0) {
+    prompt += `. Please review the following code snippet:\n\n\n\n\n\n\n`;
+    prompt += selectedText + `\n\n\n\n\n\n\n`;
+    if (request.trim().length !== 0) {
+      prompt += `and explain it.`;
+    } else {
+      prompt += `and provide your comment according to the following request: ${request}`;
+    }
+    if (aboveText.trim().length !== 0 && belowText.trim().length !== 0) {
+      prompt += `\n\nFor the context. `;
+      if (aboveText.trim().length !== 0) {
+        prompt += `Here's the code above:\n\n\n\n\n\n\n`;
+        prompt += aboveText + `\n\n\n\n\n\n\n`;
+      }
+      if (belowText.trim().length !== 0) {
+        prompt += `Here's the code below:\n\n\n\n\n\n\n`;
+        prompt += belowText + `\n\n\n\n\n\n\n`;
+      }
+    }
+  } else {
+    prompt += `. Please review the following code snippet:\n\n\n\n\n\n\n`;
+    prompt += aboveText + belowText + `\n\n\n\n\n\n\n`;
+    if (request.trim().length === 0) {
+      prompt += `and explain it.\n\n`;
+    } else {
+      prompt += `and provide your comment according to the following request: ${request}\n\n`;
+    }
+
+    const interesting = aboveText.split('\n').slice(-5).join('\n') + belowText.split('\n').slice(0, 5).join('\n');
+
+    if (interesting.trim().length !== 0) {
+      prompt += `The area of interest is near this code:\n`+interesting;
+    }
+  }
+  
+  return prompt;
+}
+
+export { explainOrAsk };
