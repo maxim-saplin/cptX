@@ -1,11 +1,16 @@
 # Use ChatGPT as your (almost)free copilot
 
-Save time for copying and pasting code between VSCode and ChatGPT window. This extension will provide ChatGPT with context (code surrounding your cursor or selection), prime the model by asking to act as expert in the given technology, send your prompt and insert the returned code block.
+Save time for copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding your cursor or selection), prime the model by asking it to act as expert in the given technology/languages, send your prompt and insert the returned code block.
+
+The extension might be a great addition to Amazom CodeWhisperer orGithub Copilot for the cases when you need to explicitly instruct GPT on  changes to be done and have the request scoped to your currently open file OR selection within the editor.
 
 ## Features
 
 - Based on 'gpt-3.5-turbo' model by OpenAI
 - Polyglot, write in any language
+- Refactor selected code
+- Insert new code at the current cursor location
+- Ask for advice or explanation
 
 ## Limitations
 - The context is limited by whatever code is in the current file, no knowledge of project structure or other files

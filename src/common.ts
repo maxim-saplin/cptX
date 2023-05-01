@@ -1,14 +1,15 @@
 import { OpenAIApi } from "openai";
+import { Performance, performance } from "perf_hooks";
 import * as vscode from 'vscode';
 
-function updateProgress(progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>) {
+function updateProgress(progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined}>, start: number | undefined) {
     let progressPercent = 0;
     let prevProgressPercent = 0;
     const interval = setInterval(() => {
         prevProgressPercent = progressPercent;
         progressPercent = (progressPercent + 5) % 100;
         const increment = progressPercent - prevProgressPercent;
-        progress.report({ increment });
+        progress.report({ message: start !== undefined ? getElapsedSeconds(start)+'s' : '',  increment});
     }, 100);
     return interval;
 }
@@ -87,7 +88,7 @@ function getLanguageId(editor: vscode.TextEditor) {
     return languageId;
 }
 
-function getDeveloperAndLanguage(editor: vscode.TextEditor) {
+function getExpertAndLanguage(editor: vscode.TextEditor) {
     let expert = '';
     let language = '';
     const languageId = getLanguageId(editor);
@@ -149,12 +150,18 @@ function getDeveloperAndLanguage(editor: vscode.TextEditor) {
     return {expert, language };
 }
 
-export {
-  updateProgress,
-  getCodeAroundCursor,
-  getCodeAroundSelection,
-  calculateLineBoundariesWithMaxWordsLimmits,
-  getGptReply,
-  getLanguageId,
-  getDeveloperAndLanguage as getExpertAndLanguage,
+function getElapsedSeconds(start: number): string {
+  const end = performance.now();
+  const duration = ((end - start) / 1000).toFixed(1); // return 1 decimal after point
+  return duration;
+}
+
+export { 
+    updateProgress, 
+    getCodeAroundCursor, 
+    getCodeAroundSelection, 
+    getGptReply, 
+    getLanguageId, 
+    getExpertAndLanguage, 
+    getElapsedSeconds as getElapsed
 };

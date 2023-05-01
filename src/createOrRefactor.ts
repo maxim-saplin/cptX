@@ -1,6 +1,7 @@
 import { OpenAIApi } from "openai";
 import * as vscode from 'vscode';
 import * as common from './common';
+import { performance } from "perf_hooks";
 
 export async function createOrRefactor(openAi: OpenAIApi) {
     try {
@@ -15,15 +16,16 @@ export async function createOrRefactor(openAi: OpenAIApi) {
             return;
         }
 
+        const start = performance.now(); // start stopwatch
+
         await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
                 title: "cptX is working on your request",
                 cancellable: true
             }, 
-            // TODO, make it cancelable OR timeout
             async (progress) => {
-                const interval = common.updateProgress(progress);
+                const interval = common.updateProgress(progress, undefined);
 
                 const selectedCode = editor.document.getText(editor.selection).trim();
                 const refactor = selectedCode.length > 0;
@@ -41,14 +43,14 @@ export async function createOrRefactor(openAi: OpenAIApi) {
 
                 let prompt = compilePrompt(whatToDo, selectedCode, aboveText, belowText, expert, language);
 
-                console.log(prompt);
+                //console.log(prompt);
 
                 const result = await common.getGptReply(openAi,  prompt);
                 clearInterval(interval);
                 progress.report({ increment: 100 });
 
                 if (result.trim().length === 0) {
-                    vscode.window.showInformationMessage('cptX replied nothing');
+                    vscode.window.showInformationMessage('cptX received nothing from GPT('+common.getElapsed(start)+'seconds)');
                     return;
                 }
 
@@ -62,12 +64,11 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                     }             
                     
                 });
-                vscode.window.showInformationMessage('cptX replied to the prompt');
+                vscode.window.showInformationMessage('cptX completed operation (${common.getElapsed(start)}s)');
             });
     } catch (error) {
-        vscode.window.showErrorMessage(`Failed to generate code: ${error}`);
+        vscode.window.showErrorMessage(`cptX failed to generate code: ${error}`);
     }
-
 }
 
 function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: string, belowText: string, profile: string, language: string) {

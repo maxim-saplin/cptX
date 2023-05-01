@@ -15,7 +15,7 @@ async function explain(openAi: OpenAIApi) {
 
       let { aboveText, belowText } = common.getCodeAroundSelection(editor);
   
-      const prompt = `Please explain the selected code:\n\n${selectedCode}`;
+      const prompt = `Please explain the selected code or provide advice:\n\n${selectedCode}`;
   
       const explanation = await common.getGptReply(openAi, prompt);
       vscode.window.showInformationMessage(explanation);
