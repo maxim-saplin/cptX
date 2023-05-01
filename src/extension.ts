@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createOrRefactor } from './codeCompleter';
+import { createOrRefactor } from './createOrRefactor';
 import { Configuration, OpenAIApi} from "openai";
 
 // This method is called when your extension is activated
