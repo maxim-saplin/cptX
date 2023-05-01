@@ -49,7 +49,7 @@
       },
       {
         "command": "cptX.explainOrAsk",
-        "title": "cptX: Explain (leave blnak) or ask question"
+        "title": "cptX: Explain (leave blank) or ask question"
       }
     ]
   },

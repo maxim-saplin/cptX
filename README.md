@@ -1,35 +1,35 @@
 # Use ChatGPT as your (almost)free copilot
+Save time for copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding your cursor or selection), primes the model by asking it to act as expert in the given technology/language, sends your prompt and insert the returned code block.
 
-Save time for copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding your cursor or selection), prime the model by asking it to act as expert in the given technology/languages, send your prompt and insert the returned code block.
+The extension is a great addition to Amazon CodeWhisperer or Github Copilot if you are missing the ability to explicitly ask of a larger scope task.
 
-The extension might be a great addition to Amazom CodeWhisperer orGithub Copilot for the cases when you need to explicitly instruct GPT on  changes to be done and have the request scoped to your currently open file OR selection within the editor.
+## How to use
+0. Open AI API key must be provided before the extension is used
+1. Go to https://platform.openai.com/account/api-keys and create a new key, copy it
+2. Open VSCode Settings (File → Preferences → Settings *OR* Code → Settings → Settings) and paste the key
+
+    <img src="images/settings.png" alt="drawing" width="400"/>
+
+3. Open file in editor and select code of interest of put cursor at the desired location
+4. Open up Command Palette (⇧⌘P on macOS, Ctrl + Shift + P on Windows and Linux) and type "cptx"
+5. Choose any of the 2 commands:
+    - cptX: Create new OR refactor existing code
+    - cptX: Explain (leave blank) or ask question
+
+    <img src="images/commands.png" alt="drawing" width="500"/>
+
+6. Hit enter and wait for extension to complete the request
 
 ## Features
-
-- Based on 'gpt-3.5-turbo' model by OpenAI
-- Polyglot, write in any language
+- Polyglot, any language
 - Refactor selected code
 - Insert new code at the current cursor location
 - Ask for advice or explanation
+- Based on 'gpt-3.5-turbo' model by OpenAI
 
 ## Limitations
 - The context is limited by whatever code is in the current file, no knowledge of project structure or other files
-- The extension doesn't add imports when new dependencies are used in created code
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Extension Settings and OpenAI API Key
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- The extension doesn't add imports when new dependencies are introduced in created code
 
 ## How is it different from Amazon Codewhisperer and GitHub Copilot
 - Unlike Codewhisperer the extension can work with any programming language or technology. E.g. Flutter and Dart are supported (while no available in Codewhisperer)
