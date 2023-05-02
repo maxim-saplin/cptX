@@ -14,8 +14,11 @@ async function explainOrAsk(openAi: OpenAIApi) {
     const selectedCode = editor.document.getText(editor.selection).trim();
 
     // If empty - ask to explain
-    const request = await vscode.window.showInputBox({ prompt: "What can I do for you?" }) ?? '';
+    let request = await vscode.window.showInputBox({ prompt: "What can I do for you?", value: "explain" }) ?? '';
 
+    if (!request) {
+      return;
+    } else if (request.toLowerCase() === 'explain') { request = ''; }
 
     const start = performance.now(); // start stopwatch
 
@@ -25,7 +28,7 @@ async function explainOrAsk(openAi: OpenAIApi) {
         title: "cptX is working on your request",
         cancellable: true
       },
-      async (progress) => {
+      async (progress, token) => { // added token parameter
         interval = common.updateProgress(progress, start);
         let { aboveText, belowText } = common.getCodeAroundSelection(editor);
 
@@ -33,11 +36,13 @@ async function explainOrAsk(openAi: OpenAIApi) {
         const prompt = compilePrompt(request, selectedCode, aboveText, belowText, expert, language);
         console.log(prompt);
 
-        const explanation = await common.getGptReply(openAi, prompt);
-        vscode.window.showInformationMessage(explanation, { modal: true });
-
-        vscode.window.showInformationMessage('cptX completed operation ('+common.getElapsed(start)+'s)');
-      });
+        const explanation = await common.getGptReply(openAi, prompt); // added token parameter
+        if (!token.isCancellationRequested) { // check if token is canceled before showing info message
+          vscode.window.showInformationMessage(explanation, { modal: true });
+          vscode.window.showInformationMessage('cptX completed operation (' + common.getElapsed(start) + 's)');
+        }
+      }
+    );
 
   } catch (error) {
     if (interval !== undefined) {
@@ -65,7 +70,7 @@ function compilePrompt(request: string, selectedText: string, aboveText: string,
   if (selectedText.trim().length !== 0) {
     prompt += `. Please review the following code snippet:\n\n\n\n\n\n\n`;
     prompt += selectedText + `\n\n\n\n\n\n\n`;
-    if (request.trim().length !== 0) {
+    if (request.trim().length === 0) {
       prompt += `and explain it.`;
     } else {
       prompt += `and provide your comment according to the following request: ${request}`;
@@ -93,10 +98,10 @@ function compilePrompt(request: string, selectedText: string, aboveText: string,
     const interesting = aboveText.split('\n').slice(-5).join('\n') + belowText.split('\n').slice(0, 5).join('\n');
 
     if (interesting.trim().length !== 0) {
-      prompt += `The area of interest is near this code:\n`+interesting;
+      prompt += `The area of interest is near this code:\n` + interesting;
     }
   }
-  
+
   return prompt;
 }
 

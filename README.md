@@ -1,5 +1,5 @@
 # Use ChatGPT as your (almost)free copilot
-Save time not copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding cursor or selection), primes the model by asking it to act as фт expert in the given technology/language, sends your prompt and inserts the returned code block to editor.
+Save time not copying and pasting code between VSCode and ChatGPT window. The extension provides ChatGPT with context (code surrounding cursor or selection), primes the model by asking it to act as an expert in the given technology/language, sends your prompt and inserts the returned code block to editor.
 
 ![Into](images/intro.gif)
 
@@ -16,7 +16,7 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 4. Open up Command Palette (⇧⌘P on macOS, Ctrl + Shift + P on Windows and Linux) and type "cptx"
 5. Choose any of the 2 commands:
     - cptX: Create new OR refactor existing code
-    - cptX: Explain (leave blank) or ask question
+    - cptX: Ask AI the question (e.g. explain)
 
     <img src="images/commands.png" alt="drawing" width="500"/>
 
@@ -38,9 +38,14 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 - It is not an uncommon opinion over the internet (as of April 2023) that ChatGPT is better at coding than above options.
 - It's almost free. CoPilot costs you $20 monthly or $100 yearly. With this extension even with heavy usage it's unlikely you'll exceed $1 monthly bill for OpenAI usage.
 - Oh, and you don't have to enter credit card details (as with GH Copilot) to start the free 3 month trial with $5 monthly quota for OpenAI API calls (as of April 2023).
-- The extension is explicit is use, i.e. it doesn't work in the background and doesn't interfere by constantly suggesting code and moving lines around -> you request smth and you get a response.
+- The extension is explicit is use, i.e. it doesn't work in the background and doesn't interfere by constantly suggesting code and moving lines around -> you request something and you get a response.
 
 ## Release Notes
+
+### 0.0.3
+- Cancelation fixed
+- Explanation fixed
+- Typos in Readme
 
 ### 0.0.2
 

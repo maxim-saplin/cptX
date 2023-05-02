@@ -24,14 +24,14 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                 location: vscode.ProgressLocation.Notification,
                 title: "cptX is working on your request",
                 cancellable: true
-            }, 
-            async (progress) => {
-                interval = common.updateProgress(progress, start);
+            },
+            async (progress, token) => {
+                interval = common.updateProgress(progress, start,);
 
                 const selectedCode = editor.document.getText(editor.selection).trim();
                 const refactor = selectedCode.length > 0;
-                let aboveText  = '';
-                let belowText  = '';
+                let aboveText = '';
+                let belowText = '';
                 let cursorLine = 0;
                 if (refactor) {
                     ({ aboveText, belowText } = common.getCodeAroundSelection(editor));
@@ -40,32 +40,37 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                     ({ aboveText, belowText, cursorLine } = common.getCodeAroundCursor(editor));
                 }
 
-                let {expert, language} = common.getExpertAndLanguage(editor);
+                let { expert, language } = common.getExpertAndLanguage(editor);
 
                 let prompt = compilePrompt(whatToDo, selectedCode, aboveText, belowText, expert, language);
 
                 console.log(prompt);
 
-                const result = await common.getGptReply(openAi,  prompt);
+                const result = await common.getGptReply(openAi, prompt);
                 clearInterval(interval);
                 progress.report({ increment: 100 });
 
-                if (result.trim().length === 0) {
-                    vscode.window.showInformationMessage('cptX received nothing from GPT('+common.getElapsed(start)+'seconds)');
+                if (result.trim().length === 0 && !token.isCancellationRequested) {
+                    vscode.window.showInformationMessage('cptX received nothing from GPT(' + common.getElapsed(start) + 'seconds)');
                     return;
                 }
+                
+                if (!token.isCancellationRequested) {
+                    editor.edit((editBuilder) => {
+                        if (refactor) {
+                            editBuilder.replace(editor.selection, result);
+                        } else {
+                            const selection = new vscode.Selection(cursorLine, 0, cursorLine, 0);
+                            editBuilder.insert(selection.end, '\n');
+                            editBuilder.insert(selection.end, result);
+                            // editor.selection = new vscode.Selection(
+                            //     editor.selection.active.line-1, 0, 
+                            //     editor.selection.active.line-1+result.split('\n').length, 0);
+                        }
 
-                editor.edit((editBuilder) => {
-                    if (refactor) {
-                        editBuilder.replace(editor.selection, result);
-                    } else {
-                        const selection = new vscode.Selection(cursorLine, 0, cursorLine, 0);
-                        editBuilder.insert(selection.end, '\n');
-                        editBuilder.insert(selection.end, result);   
-                    }             
-                    
-                });
-                vscode.window.showInformationMessage('cptX completed operation (${common.getElapsed(start)}s)');
+                    });
+                    vscode.window.showInformationMessage('cptX completed operation (${common.getElapsed(start)}s)');
+                }
             });
     } catch (error) {
         if (interval !== undefined) {
@@ -92,7 +97,7 @@ function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: strin
 
     if (refactor) {
         prompt += `Change the following code block:\n\n\n\n\n\n\n`;
-        prompt += refactorBlock+'\n\n\n\n\n\n\n';
+        prompt += refactorBlock + '\n\n\n\n\n\n\n';
         prompt += `☝ ${whatToDo}\n\n`;
     }
     else {
@@ -100,12 +105,12 @@ function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: strin
         const below = belowText.split('\n').slice(0, 7).join('\n');
 
         prompt += `Produce a code block that will be inserted directly into VSCode editor in the following source code:\n\n\n\n\n\n\n`;
-        prompt += aboveText+belowText+'\n\n\n\n\n\n\n';
+        prompt += aboveText + belowText + '\n\n\n\n\n\n\n';
         if (above.trim().length !== 0) {
-            prompt += `after the lines:\n\n`+above+`\n\n`;
+            prompt += `after the lines:\n\n` + above + `\n\n`;
         }
         else if (below.trim().length !== 0) {
-            prompt += `before the lines:\n\n`+below+`\n\n`;
+            prompt += `before the lines:\n\n` + below + `\n\n`;
         }
         prompt += `Follow the instruction: ${whatToDo}`;
     }
@@ -114,13 +119,13 @@ function compilePrompt(whatToDo: string, refactorBlock: string, aboveText: strin
         prompt += `\nFor the context. `;
         if (aboveText.trim().length !== 0) {
             prompt += `Here's the code above:\n\n\n\n\n\n\n`;
-            prompt += aboveText+`\n\n\n\n\n\n\n`;
+            prompt += aboveText + `\n\n\n\n\n\n\n`;
         }
         if (aboveText.trim().length !== 0) {
             prompt += `Here's the code below:\n\n\n\n\n\n\n`;
-            prompt += belowText+`\n\n\n\n\n\n\n`;
+            prompt += belowText + `\n\n\n\n\n\n\n`;
         }
     }
-    
+
     return prompt;
 }
