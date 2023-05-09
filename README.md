@@ -44,6 +44,9 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 
 ## Release Notes
 
+### 0.0.5
+- Created code is formatted (Format selection)
+
 ### 0.0.4
 - Time reporting fixed for create or refactor
 - More language profiles for AI priming (Dart, JavaScript, TypeScript, Python, Java, C#, Go, Ruby, Rust, HTML, CSS, JSON, YAML, C, C++, Swift, Objective-C, Objective-C++, Kotlin)

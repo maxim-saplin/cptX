@@ -32,12 +32,11 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                 const refactor = selectedCode.length > 0;
                 let aboveText = '';
                 let belowText = '';
-                let cursorLine = 0;
                 if (refactor) {
                     ({ aboveText, belowText } = common.getCodeAroundSelection(editor));
                 }
                 else {
-                    ({ aboveText, belowText, cursorLine } = common.getCodeAroundCursor(editor));
+                    ({ aboveText, belowText } = common.getCodeAroundCursor(editor));
                 }
 
                 let { expert, language } = common.getExpertAndLanguage(editor);
@@ -56,20 +55,26 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                 }
 
                 if (!token.isCancellationRequested) {
-                    editor.edit((editBuilder) => {
+                    await editor.edit((editBuilder) => {
                         if (refactor) {
                             editBuilder.replace(editor.selection, result);
                         } else {
-                            const selection = new vscode.Selection(cursorLine, 0, cursorLine, 0);
-                            editBuilder.insert(selection.end, '\n');
-                            editBuilder.insert(selection.end, result);
-                            // editor.selection = new vscode.Selection(
-                            //     editor.selection.active.line-1, 0, 
-                            //     editor.selection.active.line-1+result.split('\n').length, 0);
+                            const cursorLineNotEmpty = !editor.document.lineAt(editor.selection.end.line).isEmptyOrWhitespace;
+                            if (cursorLineNotEmpty) {
+                                editBuilder.insert(editor.selection.end, '\n');
+                            }
+                            editBuilder.insert(editor.selection.end, result);
                         }
 
                     });
+                    if (!refactor) {
+                        var endPos = editor.selection.end;
+                        var startPos = new vscode.Position(endPos.line-result.split('\n').length+1, 0);
+                        editor.selection = new vscode.Selection(startPos, endPos);
+                    }
                     vscode.window.showInformationMessage(`cptX completed operation (${common.getElapsed(start)}s)`);
+
+                    await vscode.commands.executeCommand('editor.action.formatSelection');
                 }
             });
     } catch (error) {
