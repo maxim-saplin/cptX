@@ -12,7 +12,7 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 
     <img src="images/settings.png" alt="drawing" width="400"/>
 
-3. Open file in editor and select code of interest of put cursor at the desired location
+3. Open file in editor and select code of interest or put cursor at the desired location
 4. Open up Command Palette (⇧⌘P on macOS, Ctrl + Shift + P on Windows and Linux) and type "cptx"
 5. Choose any of the 2 commands:
     - cptX: Create new OR refactor existing code
@@ -30,6 +30,8 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 - Based on 'gpt-3.5-turbo' model by OpenAI
 
 ## Limitations
+- LLMs/GPT are non-deterministic. If you don't get what you want from the first attempt - iterate, experiment with it  .
+    - Unlike standard refactoring tools, which rely on static analysis/deterministic logic and produce the right result from 1st attempt, be ready to check and fix the product of LLM/GPT
 - The context is limited by whatever code is in the current file, no knowledge of project structure or other files
 - The extension doesn't add imports when new dependencies are introduced in the created code
 
@@ -42,8 +44,13 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 
 ## Release Notes
 
+### 0.0.4
+- Time reporting fixed for create or refactor
+- More language profiles for AI priming (Dart, JavaScript, TypeScript, Python, Java, C#, Go, Ruby, Rust, HTML, CSS, JSON, YAML, C, C++, Swift, Objective-C, Objective-C++, Kotlin)
+- Readme fixes
+
 ### 0.0.3
-- Cancelation fixed
+- Cancellation fixed
 - Explanation fixed
 - Typos in Readme
 

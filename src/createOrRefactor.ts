@@ -51,10 +51,10 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                 progress.report({ increment: 100 });
 
                 if (result.trim().length === 0 && !token.isCancellationRequested) {
-                    vscode.window.showInformationMessage('cptX received nothing from GPT(' + common.getElapsed(start) + 'seconds)');
+                    vscode.window.showInformationMessage(`cptX received nothing from GPT(${common.getElapsed(start)} seconds)`);
                     return;
                 }
-                
+
                 if (!token.isCancellationRequested) {
                     editor.edit((editBuilder) => {
                         if (refactor) {
@@ -69,7 +69,7 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                         }
 
                     });
-                    vscode.window.showInformationMessage('cptX completed operation (${common.getElapsed(start)}s)');
+                    vscode.window.showInformationMessage(`cptX completed operation (${common.getElapsed(start)}s)`);
                 }
             });
     } catch (error) {

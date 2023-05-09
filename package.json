@@ -2,7 +2,7 @@
   "name": "cptx",
   "displayName": "cptX: ChatGPT as copilot",
   "description": "Use ChatGPT as your (aslmost)free copilot",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "MaximSaplin",
   "icon": "images/icon.png",
   "engines": {
@@ -50,7 +50,7 @@
       {
         "command": "cptX.explainOrAsk",
         "title": "cptX: Ask AI the question (e.g. explain)"
-      }
+      } 
     ]
   },
   "scripts": {

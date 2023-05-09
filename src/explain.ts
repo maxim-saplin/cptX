@@ -37,9 +37,14 @@ async function explainOrAsk(openAi: OpenAIApi) {
         console.log(prompt);
 
         const explanation = await common.getGptReply(openAi, prompt); // added token parameter
+
+        if (explanation.trim().length === 0 && !token.isCancellationRequested) {
+          vscode.window.showInformationMessage(`cptX received nothing from GPT(${common.getElapsed(start)} seconds)`);
+          return;
+      }
         if (!token.isCancellationRequested) { // check if token is canceled before showing info message
           vscode.window.showInformationMessage(explanation, { modal: true });
-          vscode.window.showInformationMessage('cptX completed operation (' + common.getElapsed(start) + 's)');
+          vscode.window.showInformationMessage(`cptX completed operation (${common.getElapsed(start)}s)`);
         }
       }
     );
