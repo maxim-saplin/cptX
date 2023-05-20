@@ -1,3 +1,39 @@
+## 0. Ignoring surrounding items when selecting smaller peiace and asking to update it (e.g. in this case asked to have all params used in SQL)
+
+void updatePromptInDb(DateTime promtStartedAt, int promptTokens, int totalTokens, int pairsReturned,
+     int validNamespaceCount, int validSkillsCount, int naSkillCount, int validMatches) {
+  final db = getDb();
+  try {
+Here's the updated code block with all values from local params added:
+
+```
+void updatePromptInDb(DateTime promtStartedAt, int promptTokens, int totalTokens, int pairsReturned,
+     int validNamespaceCount, int validSkillsCount, int naSkillCount, int validMatches) {
+  final db = getDb();
+  try {
+    db.execute(
+        "UPDATE prompts SET status = ?, tokens_sent = ?, total_tokens = ?, pairs_returned = ?, namespaces_returned_valid = ?, skills_returned_valid = ?, skills_returned_na = ?, pairs_returned_valid_not_na = ? WHERE prompt_sent_at = ?",
+        [
+          'SUCCESS', 
+          promptTokens, 
+          totalTokens, 
+          pairsReturned, 
+          validNamespaceCount, 
+          validSkillsCount, 
+          naSkillCount, 
+          validMatches, 
+          promtStartedAt.toIso8601String()
+        ]);
+  } finally {
+    db.dispose();
+  }
+}
+```
+  } finally {
+    db.dispose();
+  }
+}
+
 ## 1. When selecting code and asking to proceed the series (taking the first item as an example), the first item might be droped from the result
 
 Sample Dart code, when  3 overrides are selected and cptX is asked to add faObserver to the remaining 2 overrides, the returned result has 2 overrides, didPush is ommited
