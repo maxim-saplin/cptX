@@ -49,11 +49,15 @@ async function explainOrAsk(openAi: OpenAIApi) {
       }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     if (interval !== undefined) {
       clearInterval(interval);
     }
-    vscode.window.showErrorMessage(`Failed to generate explanation: ${error}`);
+    let addition = "";
+    if (error.response.data) {
+        addition += `\n\n${JSON.stringify(error.response.data)}`;
+    }
+    vscode.window.showErrorMessage(`Failed to generate explanation: ${error}${addition}`);
   }
 }
 

@@ -77,11 +77,15 @@ export async function createOrRefactor(openAi: OpenAIApi) {
                     await vscode.commands.executeCommand('editor.action.formatSelection');
                 }
             });
-    } catch (error) {
+    } catch (error: any) {
         if (interval !== undefined) {
             clearInterval(interval);
         }
-        vscode.window.showErrorMessage(`cptX failed to generate code: ${error}`);
+        let addition = "";
+        if (error.response.data) {
+            addition += `\n\n${JSON.stringify(error.response.data)}`;
+        }
+        vscode.window.showErrorMessage(`cptX failed to generate code: ${error}${addition}`);
     }
 }
 

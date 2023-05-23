@@ -39,7 +39,7 @@ function getOpenAIApi() {
 
 	// check if key is empty and throw
 	if (key.trim().length === 0) {
-		throw new Error('OpenAI API key is not set for ccptx extension. Please check extension settings and try again.');
+		throw new Error('OpenAI API key is not set for cptX extension. Please check extension settings and try again.');
 	}
 	
 	return new OpenAIApi(new Configuration({

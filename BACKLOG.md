@@ -69,3 +69,37 @@ Sample Dart code, when  3 overrides are selected and cptX is asked to add faObse
     }
   }
   ```
+
+  ##3 No valid code crested for a dart
+
+  class PromptRunner {
+  /// A class for running an OpenAI prompt.
+  PromptRunner({
+    required this.parallelWorkers,
+    required this.apiKeys,
+    required this.breakOnError,
+    required this.totalIterations,
+    required this.startAtIteration,
+  });
+
+  final int parallelWorkers;
+  final UnmodifiableListView<String> apiKeys;
+  final bool breakOnError;
+  final int totalIterations;
+  final int startAtIteration;
+Selection-->int _currentIteration = 0;
+  
+Ask -> add getter
+
+RESULT -->
+
+To add a getter for the `_currentIteration` variable, we can simply use the `get` keyword to create a getter method like this:
+
+```dart
+int _currentIteration = 0;
+
+int get currentIteration => _currentIteration;
+```
+
+This will allow us to access the `_currentIteration` variable using the `currentIteration` getter method.
+

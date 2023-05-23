@@ -44,6 +44,9 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 
 ## Release Notes
 
+### 0.0.6
+- Verbose erorr detail if OpenAI call is failed
+
 ### 0.0.5
 - Created code is formatted (Format selection)
 
