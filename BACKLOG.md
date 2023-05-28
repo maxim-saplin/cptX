@@ -103,3 +103,67 @@ int get currentIteration => _currentIteration;
 
 This will allow us to access the `_currentIteration` variable using the `currentIteration` getter method.
 
+##4 backlog/package.json has garbage text inserted.
+*Prompt:* Add dropdown with 3 values: OpenAI Gpt3.5, Azure Gpt3.5, Azure Gpt4 - default value is OpenAI. Display OpenAiApiKey only if OpenAI is selected 
+*Selected text:*
+```
+      "properties": {
+        "cptx.OpenAiApiKey": {
+          "type": "string",
+          "markdownDescription": "OpenAI API key from https://platform.openai.com/account/api-keys"
+        }
+      }
+```
+*Result*:
+Here's the modified code block:
+
+```
+"properties": {
+  "cptx.apiProvider": {
+    "type": "string",
+    "enum": [
+      "OpenAI Gpt3.5",
+      "Azure Gpt3.5",
+      "Azure Gpt4"
+    ],
+    "default": "OpenAI Gpt3.5",
+    "markdownDescription": "Choose the AI provider for the copilot"
+  },
+  "cptx.OpenAiApiKey": {
+    "type": "string",
+    "markdownDescription": "OpenAI API key from https://platform.openai.com/account/api-keys",
+    "visibleWhen": {
+      "equals": "OpenAI Gpt3.5",
+      "$ref": "#/properties/cptx.apiProvider"
+    }
+  }
+}
+```
+
+I added a new property `cptx.apiProvider` with an `enum` attribute of three values: OpenAI Gpt3.5, Azure Gpt3.5, and Azure Gpt4. 
+
+The `default` value is set to OpenAI Gpt3.5. 
+
+I also added a `"visibleWhen"` property to the `cptx.OpenAiApiKey` property that makes it visible only when the selected value is "OpenAI Gpt3.5".
+
+##5 Not a codeblock returned, backlog/extension.ts, cursor at line #59
+*Prompt:*If apiProvider != "Azure (Gpt3.5 or Gpt4)" and azure params in settings are empty - throw
+
+*Result:*
+
+	an error with the message "Azure parameters are missing for cptX extension. Please check extension settings and try again." Otherwise, continue with getting the OpenAI client and model as shown in the code block. 
+
+```
+	if (settings.apiProvider !== 'Azure (Gpt3.5 or Gpt4)' && !settings.azureEndpoint && !settings.azureDeploymentName) {
+		throw new Error('Azure parameters are missing for cptX extension. Please check extension settings and try again.');
+	}
+
+	const openaiClient = new OpenAIClient(
+		settings.apiProvider === 'Azure (Gpt3.5 or Gpt4)'
+			? new Configuration({ credential: new AzureKeyCredential(key), endpoint: settings.azureEndpoint })
+			: new Configuration({ apiKey: key }),
+	);
+	const model = settings.azureDeploymentName;
+
+	return { client: openaiClient, model };
+```

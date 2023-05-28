@@ -1,9 +1,9 @@
-import { OpenAIApi } from "openai";
+import { OpenAIClient } from "@azure/openai";
 import * as vscode from 'vscode';
 import * as common from './common';
 import { performance } from "perf_hooks";
 
-export async function createOrRefactor(openAi: OpenAIApi) {
+export async function createOrRefactor(propmptCompleter: (propmt: string) => Promise<string>) {
     let interval = undefined;
     try {
         const editor = vscode.window.activeTextEditor;
@@ -45,7 +45,7 @@ export async function createOrRefactor(openAi: OpenAIApi) {
 
                 console.log(prompt);
 
-                const result = await common.getGptReply(openAi, prompt);
+                const result = await propmptCompleter(prompt);
                 clearInterval(interval);
                 progress.report({ increment: 100 });
 
@@ -82,8 +82,13 @@ export async function createOrRefactor(openAi: OpenAIApi) {
             clearInterval(interval);
         }
         let addition = "";
-        if (error.response.data) {
-            addition += `\n\n${JSON.stringify(error.response.data)}`;
+        if (error.error ) {
+          if (error.error.code) {
+            addition += `${error.error.code}. `;
+          }
+          if (error.error.message) {
+            addition += `${error.error.message}`;
+          }
         }
         vscode.window.showErrorMessage(`cptX failed to generate code: ${error}${addition}`);
     }

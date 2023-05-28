@@ -1,9 +1,9 @@
-import { OpenAIApi } from "openai";
+import { OpenAIClient } from "@azure/openai";
 import * as vscode from 'vscode';
 import * as common from './common';
 import { performance } from "perf_hooks";
 
-async function explainOrAsk(openAi: OpenAIApi) {
+async function explainOrAsk(propmptCompleter: (propmt: string) => Promise<string>)  {
   let interval = undefined;
   try {
     const editor = vscode.window.activeTextEditor;
@@ -36,7 +36,7 @@ async function explainOrAsk(openAi: OpenAIApi) {
         const prompt = compilePrompt(request, selectedCode, aboveText, belowText, expert, language);
         console.log(prompt);
 
-        const explanation = await common.getGptReply(openAi, prompt); // added token parameter
+        const explanation = await propmptCompleter(prompt); // added token parameter
 
         if (explanation.trim().length === 0 && !token.isCancellationRequested) {
           vscode.window.showInformationMessage(`cptX received nothing from GPT(${common.getElapsed(start)} seconds)`);
@@ -53,11 +53,17 @@ async function explainOrAsk(openAi: OpenAIApi) {
     if (interval !== undefined) {
       clearInterval(interval);
     }
+    // TODO, check error messages are shown
     let addition = "";
-    if (error.response.data) {
-        addition += `\n\n${JSON.stringify(error.response.data)}`;
+    if (error.error ) {
+      if (error.error.code) {
+        addition += `${error.error.code}. `;
+      }
+      if (error.error.message) {
+        addition += `${error.error.message}`;
+      }
     }
-    vscode.window.showErrorMessage(`Failed to generate explanation: ${error}${addition}`);
+    vscode.window.showErrorMessage(`Failed to generate explanation: ${addition}`);
   }
 }
 

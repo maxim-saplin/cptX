@@ -44,6 +44,9 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 
 ## Release Notes
 
+### 0.0.7
+ - Added support for Azure OpenAI endpoints (Gpt3.5 and Gpt4)
+
 ### 0.0.6
 - Verbose erorr detail if OpenAI call is failed
 

@@ -1,4 +1,5 @@
-import { OpenAIApi } from "openai";
+import { OpenAIClient } from "@azure/openai";
+import { RequestOptions } from "https";
 import { Performance, performance } from "perf_hooks";
 import * as vscode from 'vscode';
 
@@ -71,18 +72,6 @@ function calculateLineBoundariesWithMaxWordsLimmits(lineAbove: number, lineBelow
   if (lineAbove < 0) { lineAbove = 0; }
   if (lineBelow >= editor.document.lineCount) { lineBelow = editor.document.lineCount - 1; }
   return { lineAbove, lineBelow };
-}
-
-async function getGptReply(openAi: OpenAIApi, prompt: string) {
-  const completion = await openAi.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [{
-      role: "user",
-      content: prompt,
-    }]
-  });
-  let reply = completion.data.choices[0].message?.content ?? '';
-  return reply;
 }
 
 function getLanguageId(editor: vscode.TextEditor) {
@@ -186,7 +175,6 @@ export {
   updateProgress,
   getCodeAroundCursor,
   getTextAroundSelection as getCodeAroundSelection,
-  getGptReply,
   getLanguageId,
   getExpertAndLanguage,
   getElapsedSeconds as getElapsed

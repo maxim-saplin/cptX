@@ -36,27 +36,9 @@
       "title": "cptX",
       "type": "object",
       "properties": {
-        "cptx.apiProvider": {
+        "cptx.OpenAiApiKey": {
           "type": "string",
-          "order": 0,
-          "enum": [
-            "OpenAI (Gpt3.5)",
-            "Azure (Gpt3.5 or Gpt4)"
-          ],
-          "default": "OpenAI (Gpt3.5)",
-          "markdownDescription": "Choose the AI provider for the copilot. If Azure is selected you must provide model endpoint and deployment name, you can find them in Azure AI Studio"
-        },
-        "cptx.APIKey": {
-          "type": "string",
-          "markdownDescription": "OpenAI API key (see https://platform.openai.com/account/api-keys) OR Azure API key (see Azure API key, see https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference)"
-        },
-        "cptx.AzureEndpoint": {
-          "type": "string",
-          "markdownDescription": "Azure endpoint address, e.g. https://YOUR_RESOURCE_NAME.openai.azure.com (see https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference)"
-        },
-        "cptx.AzureDeploymentName": {
-          "type": "string",
-          "markdownDescription": "Azure deploymnet name, (see https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference)"
+          "markdownDescription": "OpenAI API key from https://platform.openai.com/account/api-keys"
         }
       }
     },
@@ -68,7 +50,7 @@
       {
         "command": "cptX.explainOrAsk",
         "title": "cptX: Ask AI the question (e.g. explain)"
-      }
+      } 
     ]
   },
   "scripts": {
@@ -99,6 +81,6 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.1"
+    "openai": "^3.2.1"
   }
 }
