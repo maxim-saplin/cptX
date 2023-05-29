@@ -64,7 +64,7 @@ function getOpenAIApi(): { client: OpenAIClient, model: string } {
 	// Check if apiProvider is set to Azure and Azure parameters are provided, throw error if not
 	if (isAzure) {
 		if (!settings.azureEndpoint || !settings.azureDeploymentName) {
-			throw new Error('Azure parameters are missing for cptX extension with Azure API provider set. Please check extension settings and try again.');
+			throw new Error('Azure API provider is chosen for cptX extension yet Azure parameters are missing. Please check extension settings and try again.');
 		}
 	}
 
