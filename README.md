@@ -103,6 +103,9 @@ The extension does not use the public chat at https://chat.openai.com/ which was
 
 ## Release Notes
 
+### 0.0.8
+ - More detailed error message (e.g. API not available)
+
 ### 0.0.7
  - Added support for Azure OpenAI endpoints (Gpt3.5 and Gpt4)
  - Extended Readme 

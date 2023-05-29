@@ -146,7 +146,7 @@ The `default` value is set to OpenAI Gpt3.5.
 
 I also added a `"visibleWhen"` property to the `cptx.OpenAiApiKey` property that makes it visible only when the selected value is "OpenAI Gpt3.5".
 
-##5 Not a codeblock returned, backlog/extension.ts, cursor at line #59
+##5 Not a codeblock returned, backlog/extension.ts_, cursor at line #59
 *Prompt:*If apiProvider != "Azure (Gpt3.5 or Gpt4)" and azure params in settings are empty - throw
 
 *Result:*

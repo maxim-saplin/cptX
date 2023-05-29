@@ -90,6 +90,9 @@ export async function createOrRefactor(propmptCompleter: (propmt: string) => Pro
             addition += `${error.error.message}`;
           }
         }
+        if (error.message) {
+            addition += `${error.message}. `;
+        }
         vscode.window.showErrorMessage(`cptX failed to generate code: ${error}${addition}`);
     }
 }

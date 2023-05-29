@@ -60,8 +60,11 @@ async function explainOrAsk(propmptCompleter: (propmt: string) => Promise<string
         addition += `${error.error.code}. `;
       }
       if (error.error.message) {
-        addition += `${error.error.message}`;
+        addition += `${error.error.message}. `;
       }
+    }
+    if (error.message) {
+      addition += `${error.message}. `;
     }
     vscode.window.showErrorMessage(`Failed to generate explanation: ${addition}`);
   }
