@@ -17,7 +17,8 @@
   "keywords": [
     "chatgpt",
     "openai",
-    "gpt3",
+    "azure",
+    "gpt4",
     "copilot",
     "flutter",
     "dart",
@@ -26,7 +27,8 @@
     "javascript",
     "typescript",
     "ai",
-    "create",
+    "code",
+    "llm",
     "refactor"
   ],
   "activationEvents": [],

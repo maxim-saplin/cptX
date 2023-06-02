@@ -167,3 +167,19 @@ I also added a `"visibleWhen"` property to the `cptx.OpenAiApiKey` property that
 
 	return { client: openaiClient, model };
 ```
+
+##5 Flutter/Dart, not valid code block returned for data_table_2.dart
+*Prompt:* Add 2 fields for the 2 scroll bar visibility params in the constructor
+*Result:*
+```
+  /// Exposes scroll controller of the SingleChildScrollView that makes data rows horizontally scrollable
+  final ScrollController? horizontalScrollController;
+--->  
+Add the following code block right after the last field in the constructor:
+
+  /// Determines whether the vertical scroll bar is visible.
+  final bool? isVerticalScrollBarVisible;
+
+  /// Determines whether the horizontal scroll bar is visible.
+  final bool? isHorizontalScrollBarVisible;
+```
