@@ -77,17 +77,17 @@ function getOpenAIApi(): { client: OpenAIClient, model: string } {
 
 async function getCompletion(client: OpenAIClient, model: string, prompt: string) {
 	// TODO, remove workaround when Azure Open AI is fixed https://github.com/Azure/azure-sdk-for-js/issues/26021
-	let isAzure = getAzureSettings().apiProvider === "Azure (Gpt3.5 or Gpt4)";
-	let options = isAzure ?
-	  {} :
-	  {
-		requestOptions:
-		{
-		  headers: {
-			Authorization: `Bearer ${getApiKey()}`,
-		  },
-		}
-	  };
+	// let isAzure = getAzureSettings().apiProvider === "Azure (Gpt3.5 or Gpt4)";
+	// let options = isAzure ?
+	//   {} :
+	//   {
+	// 	requestOptions:
+	// 	{
+	// 	  headers: {
+	// 		Authorization: `Bearer ${getApiKey()}`,
+	// 	  },
+	// 	}
+	//   };
   
 	const completion = await client
 	  .getChatCompletions(
@@ -96,7 +96,7 @@ async function getCompletion(client: OpenAIClient, model: string, prompt: string
 		  role: "user",
 		  content: prompt,
 		}],
-		options
+		//options
 	  );
   
 	let reply = completion.choices[0].message?.content ?? '';

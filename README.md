@@ -100,8 +100,15 @@ The extension relies on APIs and cloud service by OpenAI and Microsoft. Both Ope
 
 The extension does not use the public chat at https://chat.openai.com/ which was the source of news around leaks (user prompts used for training) and bans (explicitly restricting employees from using ChatGPT for work related matters).
 
+## Tips and Tricks
+
+- "Check for bugs" request in 'cptX: Ask AI the question (e.g. explain)' - you can select ~100-300 lines (~2000k context) and ask to verify what's written, the extension is good at spotting minor issues (e.g. had this trailing comma in SQLite query which drove me crazy with runtime exceptions)
+
 
 ## Release Notes
+
+### 0.0.9
+ - Updated Microsoft openai client library fixing Azure auth (https://github.com/Azure/azure-sdk-for-js/issues/26021) 
 
 ### 0.0.8
  - More detailed error message (e.g. API not available)
