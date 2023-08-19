@@ -99,8 +99,8 @@ function compilePrompt(
   whatToDo: string,
   selectedCode: string,
   fileName: string,
-  aboveText: string,
-  belowText: string,
+  aboveCode: string,
+  belowCode: string,
   expert: string,
   language: string
 ): common.Message[] {
@@ -110,7 +110,8 @@ function compilePrompt(
 
   let messages: common.Message[] = [];
 
-  let systemMessage = `You're an AI assistant acting as an expert ${expert} and providing output through a VSCode extension. `;
+  let systemMessage = `You're an AI assistant acting as an expert ${expert} and capable of chained reasoning as humans do. `;
+  systemMessage += `You're providing output through a VSCode extension. `;
   systemMessage += `In the next messages a user will provide you with his/her request (instructions), show the surrounding code from the file that is in currently open in the editor. `;
   systemMessage += fileName.trim().length !== 0 ? 'The name of the file currenty open is \''+fileName+'\'.' : '';
   systemMessage += `Your goal is to provide advice and consultation.`;
@@ -128,18 +129,18 @@ function compilePrompt(
     common.addUser(messages,
       `The following code is currently selected in the editor and is in the focus of the request -> \n\n${selectedCode}`
     );
-    if (aboveText.trim().length !== 0) {
-      common.addUser(messages,`For the context, here's part of the code above the selection -> \n\n${aboveText}`);
+    if (aboveCode.trim().length !== 0) {
+      common.addUser(messages,`For the context, here's part of the code above the selection -> \n\n${aboveCode}`);
   }
-  if (belowText.trim().length !== 0) {
-    common.addUser(messages,`For the context, here's part of the code below the selection -> \n\n${belowText}`);
+  if (belowCode.trim().length !== 0) {
+    common.addUser(messages,`For the context, here's part of the code below the selection -> \n\n${belowCode}`);
   }
   } else {
-    common.addUser(messages,`For the context, here's the code that is currently open in the editor -> \n\n` + aboveText + belowText);
+    common.addUser(messages,`For the context, here's the code that is currently open in the editor -> \n\n` + aboveCode + belowCode);
 
     let interesting =
-      aboveText.split("\n").slice(-5).join("\n") +
-      belowText.split("\n").slice(0, 5).join("\n");
+      aboveCode.split("\n").slice(-5).join("\n") +
+      belowCode.split("\n").slice(0, 5).join("\n");
 
     if (interesting.trim().length !== 0) {
       interesting = `User's cursor is currently near this code -> \n\n` + interesting;

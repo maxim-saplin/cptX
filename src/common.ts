@@ -340,11 +340,7 @@ type Message = {
 
 type Role = "system" | "user" | "assistant";
 
-function addMessageToPrompt(
-  messages: Message[],
-  content: string,
-  role: Role
-){
+function addMessageToPrompt(messages: Message[], content: string, role: Role) {
   messages.push({ role, content });
 }
 
@@ -359,8 +355,33 @@ function addUser(messages: Message[], content: string) {
 }
 
 // Wrapper for adding an assistant message to the prompt
-function addAssistant(messages: Message[], content: string){
+function addAssistant(messages: Message[], content: string) {
   return addMessageToPrompt(messages, content, "assistant");
+}
+
+function removeTripleBackticks(input: string): string {
+  let lines = input.split("\n");
+
+  // Trim empty lines at the ends
+  let startIndex = 0;
+  let endIndex = lines.length - 1;
+  while (startIndex <= endIndex && lines[startIndex].trim() === "") {
+    startIndex++;
+  }
+  while (endIndex >= startIndex && lines[endIndex].trim() === "") {
+    endIndex--;
+  }
+
+  lines = lines.slice(startIndex, endIndex + 1);
+
+  if (lines.length > 0 && lines[0].startsWith("```")) {
+    lines.shift();
+  }
+  if (lines.length > 0 && lines[lines.length - 1].startsWith("```")) {
+    lines.pop();
+  }
+
+  return lines.join("\n");
 }
 
 export {
@@ -377,5 +398,6 @@ export {
   addSystem,
   addUser,
   addAssistant,
-  commentOutLine
+  commentOutLine,
+  removeTripleBackticks,
 };

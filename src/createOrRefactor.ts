@@ -61,7 +61,8 @@ export async function createOrRefactor(
           debugLog(prompt[m].content);
         }
 
-        const result = await propmptCompleter(prompt);
+        let result = await propmptCompleter(prompt);
+        result = common.removeTripleBackticks(result); //With GPT3.5 Jine 2023 version the model can't resist and often returns code block enclosed in backticks, i.e. ```typescript
         clearInterval(interval);
         progress.report({ increment: 100 });
 
@@ -130,7 +131,7 @@ function compilePrompt(
   whatToDo: string,
   selectedCode: string,
   fileName: string,
-  aboveText: string,
+  aboveCode: string,
   belowText: string,
   expert: string,
   language: string,
@@ -154,12 +155,14 @@ function compilePrompt(
   let instructions = `- Carefully follow the instructions\n`;
   instructions += `- Make sure that you only respond with a valid${language} code block and only with a valid${language} code block\n`;
   instructions += `- Don't wrap you repsonse into markdown until asked specifically`; // quite often woth June versions of OpenAI I see mede returnig blocked wraped in MD, e.g. ```dart ...
+  instructions += `- Do not enclose your output in tripple backticks \`\`\`\n`;
   instructions += `- Be concise\n`;
-  instructions += `- Do not repeat the surrounding code provided as context (above and below code snippets)\n`;
+  instructions += `- Do not repeat the surrounding code provided as context (above and below code)\n`;
   instructions += `- Use${language} comments to escape any free text\n`;
   instructions += `- If there're instructions for the user provide them as{language} comments before the produce code block\n`;
-  instructions += `- You can also use inline comments\n`;
-  instructions += `- The code you produce plugs into the code in the open editor and doesn't break it\n`;
+  instructions += `- You can also use inline${language} comments\n`;
+  instructions += `- Do not leave messages and do not add any text after the code block you will create\n`;
+  instructions += `- The code you will produce will plug into the code in the open editor as-is and can't break it\n`;
 
   common.addSystem(messages, systemMessage);
   common.addUser(messages, `Ready?)`);
@@ -184,16 +187,16 @@ function compilePrompt(
       )
   );
 
+  let contextExistis = aboveCode.trim().length !== 0 || belowText.trim().length;
+
   if (refactor) {
-    let contextExistis =
-      aboveText.trim().length !== 0 || belowText.trim().length;
     common.addUser(
       messages,
       `The following code is currently selected in the editor` +
         `and your output will replace it. Only change the selected code`
-        // contextExistis
-        // ? `, do not repeat any surrounding code from the context in your reply. `
-        // : `.`
+      // contextExistis
+      // ? `, do not repeat any surrounding code from the context in your reply. `
+      // : `.`
     );
 
     common.addUser(messages, selectedCode);
@@ -201,7 +204,7 @@ function compilePrompt(
     let aboveAdded = false;
 
     if (contextExistis) {
-      if (aboveText.trim().length !== 0) {
+      if (aboveCode.trim().length !== 0) {
         common.addAssistant(
           messages,
           common.commentOutLine(
@@ -213,7 +216,7 @@ function compilePrompt(
           messages,
           `For the context, here's part of the code above the selection`
         );
-        common.addUser(messages, aboveText);
+        common.addUser(messages, aboveCode);
         aboveAdded = true;
       }
       if (belowText.trim().length !== 0) {
@@ -232,49 +235,73 @@ function compilePrompt(
         common.addUser(messages, belowText);
       }
 
-      common.addUser(messages, `Do not return in your reply and do not repeast the code provided as context.`+
-      ` By doing so you will create duplication code and break code in edotr.`);
+      common.addUser(
+        messages,
+        `Do not return in your reply and do not repeast the code provided as context.` +
+          ` By doing so you will create duplication code and break code in edotr.`
+      );
     }
   } else {
-    const above = aboveText.split(`\n`).slice(-7).join(`\n`);
-    const below = belowText.split(`\n`).slice(0, 7).join(`\n`);
-
-    let s = `Your code block will be inserted `;
-    if (above.trim().length !== 0) {
-      s += `after the lines:\n\n` + above + `\n\n`;
-    } else if (below.trim().length !== 0) {
-      s += `before the lines:\n\n` + below + `\n\n`;
-    }
-
-    common.addUser(messages, s);
-
-    common.addAssistant(
-      messages,
-      common.commentOutLine(
-        languageId,
-        `Please provide surrounding code if any`
-      )
-    );
+    // const above = aboveText.split(`\n`).slice(-7).join(`\n`);
+    // const below = belowText.split(`\n`).slice(0, 7).join(`\n`);
 
     common.addUser(
       messages,
-      `For the context, here's the code that is currently open in the editor -> \n\n` +
-        aboveText +
-        belowText
+      `Your code block will be inserted at the current cursor location.`
+        // (aboveCode.trim().length === 0
+        //   ? `The cursor is currently located at the top of the file.`
+        //   : belowText.trim().length === 0
+        //   ? `The cursor is currently located at the bottom of the file.`
+        //   : ``)
     );
+    // if (above.trim().length !== 0) {
+    //   s += `after the following lines:\n\n` + above + `\n\n`;
+    // } else if (below.trim().length !== 0) {
+    //   s += `before the following lines:\n\n` + below + `\n\n`;
+    // }
+
+    //common.addUser(messages, s);
+
+    common.addAssistant(
+      messages,
+      common.commentOutLine(languageId, `Please provide surrounding code`)
+    );
+
+    if (contextExistis) {
+      if (aboveCode.trim().length !== 0) {
+        common.addUser(
+          messages,
+          `For the context, here's the code that is located abover the cursor`
+        );
+        common.addUser(messages, aboveCode);
+      }
+
+      if (belowText.trim().length !== 0) {
+        common.addUser(
+          messages,
+          `For the context, here's the code that is located below the cursor`
+        );
+        common.addUser(messages, aboveCode);
+      }
+    } else {
+      common.addUser(messages, "The file is currently empty");
+    }
   }
 
   common.addAssistant(
     messages,
     common.commentOutLine(
       languageId,
-      `I am ready to complete the request and generate the code snippet that will be inserted into Visual Studio Code editor`
+      `I am ready to complete the request and generate${language} code snippet that will be inserted into Visual Studio Code editor`
     )
   );
 
   common.addUser(
     messages,
-    `Please proceed and don't forget about all the instructions that you have been given:\n` + instructions
+    `Please proceed and don't forget that from this point` +
+      ` I won't be repling to you and your next response will be automatically inserted into VSCode as-is.` +
+      ` Remember the instructions:\n` +
+      instructions
   );
 
   return messages;
