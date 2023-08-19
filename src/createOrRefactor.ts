@@ -155,6 +155,7 @@ function compilePrompt(
   systemMessage += `- Make sure that you only respond with a valid${language} code block and only with a valid${language} code block\n`;
   systemMessage += `- Don't wrap you repsonse into markdown until asked specifically`; // quite often woth June versions of OpenAI I see mede returnig blocked wraped in MD, e.g. ```dart ...
   systemMessage += `- Be concise\n`;
+  systemMessage += `- Do not repeat the surrounding code provided as context (above and below code snippets)\n`;
   systemMessage += `- Use${language} comments to escape any free text\n`;
   systemMessage += `- If there're instructions for the user provide them as{language} comments before the produce code block\n`;
   systemMessage += `- You can also use inline comments\n`;
@@ -193,20 +194,31 @@ function compilePrompt(
       `The following code is currently selected in the editor and your output will replace it -> \n\n${selectedCode}`
     );
 
-    if (aboveText.trim().length !== 0 || belowText.trim().length !== 0) {
-      common.addAssistant(messages, common.commentOutLine(languageId, `Please provide surrounding code if any`));
-      if (aboveText.trim().length !== 0) {
-        common.addUser(
-          messages,
-          `For the context, here's part of the code above the selection -> \n\n${aboveText}`
-        );
-      }
-      if (belowText.trim().length !== 0) {
-        common.addUser(
-          messages,
-          `For the context, here's part of the code below the selection -> \n\n${belowText}`
-        );
-      }
+    let aboveAdded = false;
+
+    if (aboveText.trim().length !== 0) {
+      common.addAssistant(
+        messages,
+        common.commentOutLine(
+          languageId,
+          `Please provide surrounding code if any`
+        )
+      );
+      common.addUser(
+        messages,
+        `For the context, here's part of the code above the selection -> \n\n${aboveText}`
+      );
+      aboveAdded = true;
+    }
+    if (belowText.trim().length !== 0) {
+      let assistant = aboveAdded ? `Is there more code below` : `Please provide surrounding code if any`;
+      common.addAssistant(messages,
+        common.commentOutLine(
+          languageId,assistant));
+      common.addUser(
+        messages,
+        (aboveAdded ? `For the context, here's` : `Here's` )+`part of the code below the selection -> \n\n${belowText}`
+      );
     }
   } else {
     const above = aboveText.split(`\n`).slice(-7).join(`\n`);
@@ -221,22 +233,34 @@ function compilePrompt(
 
     common.addUser(messages, s);
 
-    common.addAssistant(messages, common.commentOutLine(languageId, `Please provide surrounding code if any`));
+    common.addAssistant(
+      messages,
+      common.commentOutLine(
+        languageId,
+        `Please provide surrounding code if any`
+      )
+    );
 
     common.addUser(
       messages,
-      `For the context, here's more code that is currently open in the editor -> \n\n` +
+      `For the context, here's the code that is currently open in the editor -> \n\n` +
         aboveText +
         belowText
     );
-
-    // if (language.trim().length !== 0) {
-    //   common.addUser(
-    //     messages,
-    //     `Only reply in ${language} and produce a valid code block`
-    //   );
-    // }
   }
+
+  common.addAssistant(
+    messages,
+    common.commentOutLine(
+      languageId,
+      `I am ready to complete the request and generate the code snippet that will be inserted into Visual Studio Code editor`
+    )
+  );
+
+  common.addUser(
+    messages,
+    `Please proceed and don't forget about all the instructions that you have been given`
+  );
 
   return messages;
 }
