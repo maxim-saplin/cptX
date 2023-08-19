@@ -151,19 +151,15 @@ function compilePrompt(
       ? "The name of the file currenty open is '" + fileName + "'."
       : "";
   systemMessage += `\n`;
-  systemMessage += `- Carefully follow the instructions\n`;
-  systemMessage += `- Make sure that you only respond with a valid${language} code block and only with a valid${language} code block\n`;
-  systemMessage += `- Don't wrap you repsonse into markdown until asked specifically`; // quite often woth June versions of OpenAI I see mede returnig blocked wraped in MD, e.g. ```dart ...
-  systemMessage += `- Be concise\n`;
-  systemMessage += `- Do not repeat the surrounding code provided as context (above and below code snippets)\n`;
-  systemMessage += `- Use${language} comments to escape any free text\n`;
-  systemMessage += `- If there're instructions for the user provide them as{language} comments before the produce code block\n`;
-  systemMessage += `- You can also use inline comments\n`;
-  systemMessage += `- The code you produce plugs into the code in the open editor and doesn't break it\n`;
-
-  //   systemMessage += `REMEMBER! Only valid${language} code block can be in your repsonse! `;
-  //   systemMessage += `Your response will be inserted as-is to code editor! `;
-  //   systemMessage += `Free text response will break the compilation and spoil the code in the editor!`;
+  let instructions = `- Carefully follow the instructions\n`;
+  instructions += `- Make sure that you only respond with a valid${language} code block and only with a valid${language} code block\n`;
+  instructions += `- Don't wrap you repsonse into markdown until asked specifically`; // quite often woth June versions of OpenAI I see mede returnig blocked wraped in MD, e.g. ```dart ...
+  instructions += `- Be concise\n`;
+  instructions += `- Do not repeat the surrounding code provided as context (above and below code snippets)\n`;
+  instructions += `- Use${language} comments to escape any free text\n`;
+  instructions += `- If there're instructions for the user provide them as{language} comments before the produce code block\n`;
+  instructions += `- You can also use inline comments\n`;
+  instructions += `- The code you produce plugs into the code in the open editor and doesn't break it\n`;
 
   common.addSystem(messages, systemMessage);
   common.addUser(messages, `Ready?)`);
@@ -189,36 +185,55 @@ function compilePrompt(
   );
 
   if (refactor) {
+    let contextExistis =
+      aboveText.trim().length !== 0 || belowText.trim().length;
     common.addUser(
       messages,
-      `The following code is currently selected in the editor and your output will replace it -> \n\n${selectedCode}`
+      `The following code is currently selected in the editor` +
+        `and your output will replace it. Only change the selected code`
+        // contextExistis
+        // ? `, do not repeat any surrounding code from the context in your reply. `
+        // : `.`
     );
+
+    common.addUser(messages, selectedCode);
 
     let aboveAdded = false;
 
-    if (aboveText.trim().length !== 0) {
-      common.addAssistant(
-        messages,
-        common.commentOutLine(
-          languageId,
-          `Please provide surrounding code if any`
-        )
-      );
-      common.addUser(
-        messages,
-        `For the context, here's part of the code above the selection -> \n\n${aboveText}`
-      );
-      aboveAdded = true;
-    }
-    if (belowText.trim().length !== 0) {
-      let assistant = aboveAdded ? `Is there more code below` : `Please provide surrounding code if any`;
-      common.addAssistant(messages,
-        common.commentOutLine(
-          languageId,assistant));
-      common.addUser(
-        messages,
-        (aboveAdded ? `For the context, here's` : `Here's` )+`part of the code below the selection -> \n\n${belowText}`
-      );
+    if (contextExistis) {
+      if (aboveText.trim().length !== 0) {
+        common.addAssistant(
+          messages,
+          common.commentOutLine(
+            languageId,
+            `Please provide surrounding code if any`
+          )
+        );
+        common.addUser(
+          messages,
+          `For the context, here's part of the code above the selection`
+        );
+        common.addUser(messages, aboveText);
+        aboveAdded = true;
+      }
+      if (belowText.trim().length !== 0) {
+        let assistant = aboveAdded
+          ? `Is there more code below`
+          : `Please provide surrounding code if any`;
+        common.addAssistant(
+          messages,
+          common.commentOutLine(languageId, assistant)
+        );
+        common.addUser(
+          messages,
+          (!aboveAdded ? `For the context, here's` : `And here's`) +
+            `part of the code below the selection`
+        );
+        common.addUser(messages, belowText);
+      }
+
+      common.addUser(messages, `Do not return in your reply and do not repeast the code provided as context.`+
+      ` By doing so you will create duplication code and break code in edotr.`);
     }
   } else {
     const above = aboveText.split(`\n`).slice(-7).join(`\n`);
@@ -259,7 +274,7 @@ function compilePrompt(
 
   common.addUser(
     messages,
-    `Please proceed and don't forget about all the instructions that you have been given`
+    `Please proceed and don't forget about all the instructions that you have been given:\n` + instructions
   );
 
   return messages;
