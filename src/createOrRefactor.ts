@@ -43,7 +43,8 @@ export async function createOrRefactor(
           ({ aboveText, belowText } = common.getCodeAroundCursor(editor));
         }
 
-        let { expert, language, languageId } = common.getExpertAndLanguage(editor);
+        let { expert, language, languageId } =
+          common.getExpertAndLanguage(editor);
 
         let prompt = compilePrompt(
           whatToDo,
@@ -60,9 +61,7 @@ export async function createOrRefactor(
           debugLog(prompt[m].content);
         }
 
-        const result = await propmptCompleter(
-          prompt
-        );
+        const result = await propmptCompleter(prompt);
         clearInterval(interval);
         progress.report({ increment: 100 });
 
@@ -167,11 +166,26 @@ function compilePrompt(
 
   common.addSystem(messages, systemMessage);
   common.addUser(messages, `Ready?)`);
-  common.addAssistant(messages, common.commentOutLine(languageId, `OK`));
+  common.addAssistant(
+    messages,
+    common.commentOutLine(languageId, `OK`) +
+      `\n` +
+      common.commentOutLine(languageId, `I am ready`)
+  );
 
   const refactor = selectedCode.trim().length > 0;
 
   common.addUser(messages, `Here is the instruction -> \n\n${whatToDo}`);
+
+  common.addAssistant(
+    messages,
+    common.commentOutLine(languageId, `Thank you`) +
+      `\n` +
+      common.commentOutLine(
+        languageId,
+        `Awaiting for code snippets from the open file`
+      )
+  );
 
   if (refactor) {
     common.addUser(
@@ -179,17 +193,20 @@ function compilePrompt(
       `The following code is currently selected in the editor and your output will replace it -> \n\n${selectedCode}`
     );
 
-    if (aboveText.trim().length !== 0) {
-      common.addUser(
-        messages,
-        `For the context, here's part of the code above the selection -> \n\n${aboveText}`
-      );
-    }
-    if (belowText.trim().length !== 0) {
-      common.addUser(
-        messages,
-        `For the context, here's part of the code below the selection -> \n\n${belowText}`
-      );
+    if (aboveText.trim().length !== 0 || belowText.trim().length !== 0) {
+      common.addAssistant(messages, common.commentOutLine(languageId, `Please provide surrounding code if any`));
+      if (aboveText.trim().length !== 0) {
+        common.addUser(
+          messages,
+          `For the context, here's part of the code above the selection -> \n\n${aboveText}`
+        );
+      }
+      if (belowText.trim().length !== 0) {
+        common.addUser(
+          messages,
+          `For the context, here's part of the code below the selection -> \n\n${belowText}`
+        );
+      }
     }
   } else {
     const above = aboveText.split(`\n`).slice(-7).join(`\n`);
@@ -204,6 +221,8 @@ function compilePrompt(
 
     common.addUser(messages, s);
 
+    common.addAssistant(messages, common.commentOutLine(languageId, `Please provide surrounding code if any`));
+
     common.addUser(
       messages,
       `For the context, here's more code that is currently open in the editor -> \n\n` +
@@ -211,12 +230,12 @@ function compilePrompt(
         belowText
     );
 
-    if (language.trim().length !== 0) {
-      common.addUser(
-        messages,
-        `Only reply in ${language} and produce a valid code block`
-      );
-    }
+    // if (language.trim().length !== 0) {
+    //   common.addUser(
+    //     messages,
+    //     `Only reply in ${language} and produce a valid code block`
+    //   );
+    // }
   }
 
   return messages;
