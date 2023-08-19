@@ -1,4 +1,4 @@
-## 0. Ignoring surrounding items when selecting smaller peiace and asking to update it (e.g. in this case asked to have all params used in SQL)
+## 0. Ignoring surrounding items when selecting smaller piece and asking to update it (e.g. in this case asked to have all params used in SQL)
 
 void updatePromptInDb(DateTime promtStartedAt, int promptTokens, int totalTokens, int pairsReturned,
      int validNamespaceCount, int validSkillsCount, int naSkillCount, int validMatches) {
@@ -36,7 +36,7 @@ void updatePromptInDb(DateTime promtStartedAt, int promptTokens, int totalTokens
 
 ## 1. When selecting code and asking to proceed the series (taking the first item as an example), the first item might be dropped from the result
 
-Sample Dart code, when  3 overrides are selected and cptX is asked to add faObserver to the remaining 2 overrides, the returned result has 2 overrides, didPush is ommited
+Sample Dart code, when  3 overrides are selected and cptX is asked to add faObserver to the remaining 2 overrides, the returned result has 2 overrides, didPush is omitted
 
 ```
   @override
@@ -202,7 +202,7 @@ Selected block:
   /// making it possible to have performant sticky columns.
 ```
 
-## 7 Don't mention bot is AI assistent
+## 7 Don't mention bot is AI assistant
 
 "As an AI language model, I cannot provide suggestions on how to restore NuGet packages in VSCode. However, I can review the provided code snippet."
 
@@ -211,7 +211,7 @@ E.g. add to prompt "don't preface your answer with AI"
 ## 8 Dart doc not fixed for sqlite_storage.dart
 
 *Prompt:* Fix doc
-*Expected:* Double slashes are changed to tripple
+*Expected:* Double slashes are changed to triple
 *Selected block:*
 /// SQLite implemetaion that saves prompt metadata to local file
 /// Check for 'prompts' table, creates one if not present, check for
@@ -237,7 +237,7 @@ E.g. add to prompt "don't preface your answer with AI"
 
 ## Invalid code block returned for sqlite_storage_2.dart
 
-*Prompt:* Check the selected block to check for item equality rather than referencfe equality
+*Prompt:* Check the selected block to check for item equality rather than reference equality
 To check for item equality rather than reference equality, replace the following code block:
 
 *Selected block:*
@@ -264,3 +264,23 @@ if (columns.length != expectedColumns.length ||
 ```
 
 This block checks if the `columns` list has the same length and contents as the `expectedColumns` list, using the `every` method to check for item equality. If they don't match, it throws an exception.
+
+## Change precision, common.ts
+
+*Prompt:* : Change precision of {end - start} to 2 decimals after point
+
+*Selected block:*
+`console.log(`getTextAroundSelection(): ${end - start}ms,`
+in
+
+ ```
+  const end = performance.now();
+  if (isDebugMode()) {
+    console.log(`getTextAroundSelection(): ${end - start}ms,
+    ${totalTokens} tokens,
+    ${aboveText.split('\n').length + belowText.split('\n').length} lines`);
+  }
+  ```
+
+*Expected:* 
+`console.log(`getTextAroundSelection(): ${(end - start).toFixed(2)}ms,`

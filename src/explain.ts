@@ -1,24 +1,31 @@
 import { OpenAIClient } from "@azure/openai";
-import * as vscode from 'vscode';
-import * as common from './common';
+import * as vscode from "vscode";
+import * as common from "./common";
 import { performance } from "perf_hooks";
+import { debugLog } from "./common";
 
-async function explainOrAsk(propmptCompleter: (propmt: string) => Promise<string>)  {
+async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
   let interval = undefined;
   try {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-      return vscode.window.showErrorMessage('No active editor');
+      return vscode.window.showErrorMessage("No active editor");
     }
 
     const selectedCode = editor.document.getText(editor.selection).trim();
 
     // If empty - ask to explain
-    let request = await vscode.window.showInputBox({ prompt: "What can I do for you?", value: "explain" }) ?? '';
+    let request =
+      (await vscode.window.showInputBox({
+        prompt: "What can I do for you?",
+        value: "explain",
+      })) ?? "";
 
     if (!request) {
       return;
-    } else if (request.toLowerCase() === 'explain') { request = ''; }
+    } else if (request.toLowerCase() === "explain") {
+      request = "";
+    }
 
     const start = performance.now(); // start stopwatch
 
@@ -26,36 +33,52 @@ async function explainOrAsk(propmptCompleter: (propmt: string) => Promise<string
       {
         location: vscode.ProgressLocation.Notification,
         title: "cptX is working on your request",
-        cancellable: true
+        cancellable: true,
       },
-      async (progress, token) => { // added token parameter
+      async (progress, token) => {
+        // added token parameter
         interval = common.updateProgress(progress, start);
-        let { aboveText, belowText } = common.getCodeAroundSelection(editor);
+        let { aboveText, belowText } = common.getTextAroundSelection(editor);
 
         let { expert, language } = common.getExpertAndLanguage(editor);
-        const prompt = compilePrompt(request, selectedCode, aboveText, belowText, expert, language);
-        console.log(prompt);
+        const prompt = compilePrompt(
+          request,
+          selectedCode,
+          editor.document.fileName,
+          aboveText,
+          belowText,
+          expert,
+          language
+        );
 
-        const explanation = await propmptCompleter(prompt); // added token parameter
+        for(var m in prompt) { debugLog(prompt[m]);};
+
+        const explanation = await propmptCompleter(prompt);
 
         if (explanation.trim().length === 0 && !token.isCancellationRequested) {
-          vscode.window.showInformationMessage(`cptX received nothing from GPT(${common.getElapsed(start)} seconds)`);
+          vscode.window.showInformationMessage(
+            `cptX received nothing from GPT(${common.getElapsedSeconds(
+              start
+            )} seconds)`
+          );
           return;
-      }
-        if (!token.isCancellationRequested) { // check if token is canceled before showing info message
+        }
+        if (!token.isCancellationRequested) {
+          // check if token is canceled before showing info message
           vscode.window.showInformationMessage(explanation, { modal: true });
-          vscode.window.showInformationMessage(`cptX completed operation (${common.getElapsed(start)}s)`);
+          vscode.window.showInformationMessage(
+            `cptX completed operation (${common.getElapsedSeconds(start)}s)`
+          );
         }
       }
     );
-
   } catch (error: any) {
     if (interval !== undefined) {
       clearInterval(interval);
     }
     // TODO, check error messages are shown
     let addition = "";
-    if (error.error ) {
+    if (error.error) {
       if (error.error.code) {
         addition += `${error.error.code}. `;
       }
@@ -66,61 +89,66 @@ async function explainOrAsk(propmptCompleter: (propmt: string) => Promise<string
     if (error.message) {
       addition += `${error.message}. `;
     }
-    vscode.window.showErrorMessage(`Failed to generate explanation: ${addition}`);
+    vscode.window.showErrorMessage(
+      `Failed to generate explanation: ${addition}`
+    );
   }
 }
 
-function compilePrompt(request: string, selectedText: string, aboveText: string, belowText: string, profile: string, language: string) {
+function compilePrompt(
+  whatToDo: string,
+  selectedCode: string,
+  fileName: string,
+  aboveText: string,
+  belowText: string,
+  expert: string,
+  language: string
+): common.Message[] {
   if (language.trim().length !== 0) {
-    language = ' ' + language;
+    language = " " + language;
   }
 
-  if (profile.trim().length === 0) {
-    profile = 'software developer';
+  let messages: common.Message[] = [];
+
+  let systemMessage = `You're an AI assistant acting as an expert ${expert} and providing output through a VSCode extension. `;
+  systemMessage += `In the next messages a user will provide you with his/her request (instructions), show the surrounding code from the file that is in currently open in the editor. `;
+  systemMessage += fileName.trim().length !== 0 ? 'The name of the file currenty open is \''+fileName+'\'.' : '';
+  systemMessage += `Your goal is to provide advice and consultation.`;
+  systemMessage += `\n`;
+  systemMessage += `- Carefully follow the instructions\n`;
+  systemMessage += `- Be concise\n`;
+
+  common.addSystem(messages, systemMessage);
+
+
+  if (whatToDo.trim().length === 0) {whatToDo = `Please explain the code`;};
+  common.addUser(messages,`Here is the request -> \n\n${whatToDo}`);
+
+  if (selectedCode.trim().length !== 0) {
+    common.addUser(messages,
+      `The following code is currently selected in the editor and is in the focus of the request -> \n\n${selectedCode}`
+    );
+    if (aboveText.trim().length !== 0) {
+      common.addUser(messages,`For the context, here's part of the code above the selection -> \n\n${aboveText}`);
   }
-
-  let prompt = `You're an expert ${profile}`;
-
-  if (language.trim().length !== 0) {
-    prompt += ` experienced in ${language}`;
+  if (belowText.trim().length !== 0) {
+    common.addUser(messages,`For the context, here's part of the code below the selection -> \n\n${belowText}`);
   }
-
-  if (selectedText.trim().length !== 0) {
-    prompt += `. Please review the following code snippet:\n\n\n\n\n\n\n`;
-    prompt += selectedText + `\n\n\n\n\n\n\n`;
-    if (request.trim().length === 0) {
-      prompt += `and explain it.`;
-    } else {
-      prompt += `and provide your comment according to the following request: ${request}`;
-    }
-    if (aboveText.trim().length !== 0 && belowText.trim().length !== 0) {
-      prompt += `\n\nFor the context. `;
-      if (aboveText.trim().length !== 0) {
-        prompt += `Here's the code above:\n\n\n\n\n\n\n`;
-        prompt += aboveText + `\n\n\n\n\n\n\n`;
-      }
-      if (belowText.trim().length !== 0) {
-        prompt += `Here's the code below:\n\n\n\n\n\n\n`;
-        prompt += belowText + `\n\n\n\n\n\n\n`;
-      }
-    }
   } else {
-    prompt += `. Please review the following code snippet:\n\n\n\n\n\n\n`;
-    prompt += aboveText + belowText + `\n\n\n\n\n\n\n`;
-    if (request.trim().length === 0) {
-      prompt += `and explain it.\n\n`;
-    } else {
-      prompt += `and provide your comment according to the following request: ${request}\n\n`;
-    }
+    common.addUser(messages,`For the context, here's the code that is currently open in the editor -> \n\n` + aboveText + belowText);
 
-    const interesting = aboveText.split('\n').slice(-5).join('\n') + belowText.split('\n').slice(0, 5).join('\n');
+    let interesting =
+      aboveText.split("\n").slice(-5).join("\n") +
+      belowText.split("\n").slice(0, 5).join("\n");
 
     if (interesting.trim().length !== 0) {
-      prompt += `The area of interest is near this code:\n` + interesting;
+      interesting = `User's cursor is currently near this code -> \n\n` + interesting;
     }
+
+    common.addUser(messages,interesting);
   }
 
-  return prompt;
+  return messages;
 }
 
 export { explainOrAsk };

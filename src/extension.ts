@@ -1,32 +1,39 @@
 import * as vscode from 'vscode';
 import { createOrRefactor } from './createOrRefactor';
-import { OpenAIClient, OpenAIKeyCredential, AzureKeyCredential } from "@azure/openai";
+import { OpenAIClient, OpenAIKeyCredential, AzureKeyCredential, ChatMessage } from "@azure/openai";
 //import {setLogLevel} from "@azure/logger";
 import { explainOrAsk } from './explain';
+import { Message, PromptCompleter } from './common';
 
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "cptX" is now active!');
 	//setLogLevel("verbose");
 
-	let { client, model } = getOpenAIApi();
-	var completer = function(prompt: string): Promise<string> {
-		return getCompletion(client, model, prompt);
+	function getCompleter(client: OpenAIClient, model: string): PromptCompleter {
+		return function(messages: Message[]): Promise<string> {
+			for (var m in messages) {
+				messages.push({role: messages[m].role, content: messages[m].content});
+			}
+			return getCompletion(client, model, messages);
+		};
 	}
+
+	let { client, model } = getOpenAIApi();
+	var completer = getCompleter(client, model);
 
 	vscode.workspace.onDidChangeConfiguration(event => {
 		let affected = event.affectsConfiguration("cptx.APIKey");
 		if (affected) {
 			({ client, model } = getOpenAIApi());
-			completer = function(prompt: string): Promise<string> {
-				return getCompletion(client, model, prompt);
-			}
+			completer = getCompleter(client, model);
 		}
 	});
 
 	context.subscriptions.push(vscode.commands.registerCommand('cptX.createOrRefactor', () => createOrRefactor(completer)));
 	context.subscriptions.push(vscode.commands.registerCommand('cptX.explainOrAsk', () => explainOrAsk(completer)));
 }
+
 
 // This method is called when your extension is deactivated
 export function deactivate() { }
@@ -47,7 +54,7 @@ function getAzureSettings(): { apiProvider: string, azureEndpoint: string, azure
 		apiProvider: apiProvider ?? '',
 		azureEndpoint: azureEndpoint ?? '',
 		azureDeploymentName: azureDeploymentName ?? ''
-	}
+	};
 }
 
 function getOpenAIApi(): { client: OpenAIClient, model: string } {
@@ -75,28 +82,13 @@ function getOpenAIApi(): { client: OpenAIClient, model: string } {
 	return { client, model };
 }
 
-async function getCompletion(client: OpenAIClient, model: string, prompt: string) {
-	// TODO, remove workaround when Azure Open AI is fixed https://github.com/Azure/azure-sdk-for-js/issues/26021
-	// let isAzure = getAzureSettings().apiProvider === "Azure (Gpt3.5 or Gpt4)";
-	// let options = isAzure ?
-	//   {} :
-	//   {
-	// 	requestOptions:
-	// 	{
-	// 	  headers: {
-	// 		Authorization: `Bearer ${getApiKey()}`,
-	// 	  },
-	// 	}
-	//   };
+async function getCompletion(client: OpenAIClient, model: string,  messages: ChatMessage[] /*prompt: string*/) {
   
 	const completion = await client
 	  .getChatCompletions(
 		model,
-		[{
-		  role: "user",
-		  content: prompt,
-		}],
-		//options
+		messages,
+		{temperature: 0.0}
 	  );
   
 	let reply = completion.choices[0].message?.content ?? '';

@@ -1,18 +1,41 @@
 import { OpenAIClient } from "@azure/openai";
 import { RequestOptions } from "https";
 import { Performance, performance } from "perf_hooks";
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import { get_encoding } from "@dqbd/tiktoken";
 
-function updateProgress(progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined }>, start: number | undefined) {
+function updateProgress(
+  progress: vscode.Progress<{
+    message?: string | undefined;
+    increment?: number | undefined;
+  }>,
+  start: number | undefined
+) {
   let progressPercent = 0;
   let prevProgressPercent = 0;
   const interval = setInterval(() => {
     prevProgressPercent = progressPercent;
     progressPercent = (progressPercent + 5) % 100;
     const increment = progressPercent - prevProgressPercent;
-    progress.report({ message: start !== undefined ? getElapsedSeconds(start) + 's' : '', increment });
+    progress.report({
+      message: start !== undefined ? getElapsedSeconds(start) + "s" : "",
+      increment,
+    });
   }, 100);
   return interval;
+}
+
+const isDebugMode = () => process.env.VSCODE_DEBUG_MODE === "true";
+
+const encoding = get_encoding("cl100k_base");
+const contextSize =
+  vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ?? 2048;
+// This is the number of tokens that goes in the first request leaving the rest for completion and insertion into editor
+const maxTokensInRequest = 0.65 * contextSize;
+
+function countTokens(input: string): number {
+  const tokens = encoding.encode(input).length;
+  return tokens;
 }
 
 function getCodeAroundCursor(editor: vscode.TextEditor) {
@@ -21,33 +44,91 @@ function getCodeAroundCursor(editor: vscode.TextEditor) {
   const cursorLine = editor.selection.active.line;
   let lineAbove = cursorLine - 1;
   let lineBelow = cursorLine + 1;
-  ({ lineAbove, lineBelow } = calculateLineBoundariesWithMaxWordsLimmits(lineAbove, lineBelow, editor, maxWords));
+  ({ lineAbove, lineBelow } = calculateLineBoundariesWithMaxTokensLimmit(
+    lineAbove,
+    lineBelow,
+    editor,
+    maxWords
+  ));
 
-  var aboveText = editor.document.getText(new vscode.Range(lineAbove, 0, cursorLine + 1, 0));
-  var belowText = editor.document.getText(new vscode.Range(cursorLine + 1, 0, lineBelow, 0));
+  var aboveText = editor.document.getText(
+    new vscode.Range(lineAbove, 0, cursorLine + 1, 0)
+  );
+  var belowText = editor.document.getText(
+    new vscode.Range(cursorLine + 1, 0, lineBelow, 0)
+  );
   return { aboveText, belowText, cursorLine };
 }
 
+type PromptCompleter = (messages: Message[]) => Promise<string>;
+
+/**
+ * Retrieves the code around the cursor in the TextEditor.
+ * Limmits the number of text to max token ceiling based on settings (ContextSize).
+ *
+ * @param editor The vscode.TextEditor object representing the active editor.
+ * @returns An object containing the code above the cursor, the code below the cursor, and the cursor line number.
+ */
+
 function getTextAroundSelection(editor: vscode.TextEditor) {
-  const maxWords = 2500;
+  const start = performance.now();
 
   let lineAbove = editor.selection.start.line - 1;
   let lineBelow = editor.selection.end.line + 1;
-  ({ lineAbove, lineBelow } = calculateLineBoundariesWithMaxWordsLimmits(lineAbove, lineBelow, editor, maxWords));
+  let totalTokens = 0;
+  ({ lineAbove, lineBelow, totalTokens } =
+    calculateLineBoundariesWithMaxTokensLimmit(
+      lineAbove,
+      lineBelow,
+      editor,
+      maxTokensInRequest
+    ));
 
-  var aboveText = editor.document.getText(new vscode.Range(lineAbove, 0, editor.selection.start.line, 0));
-  var belowText = editor.document.getText(new vscode.Range(editor.selection.end.line
-    // Don't add 1 line if there's something selected
-    + (editor.selection.isEmpty ? 0 : 1), 0, lineBelow, 0));
+  var aboveText = editor.document.getText(
+    new vscode.Range(lineAbove, 0, editor.selection.start.line, 0)
+  );
+  var belowText = editor.document.getText(
+    new vscode.Range(
+      editor.selection.end.line +
+        // Don't add 1 line if there's something selected
+        (editor.selection.isEmpty ? 0 : 1),
+      0,
+      lineBelow,
+      0
+    )
+  );
+
+  const end = performance.now();
+  debugLog(
+    `getTextAroundSelection(): ${(end - start).toFixed(
+      2
+    )}ms, ${totalTokens} tokens, ${
+      aboveText.split("\n").length + belowText.split("\n").length
+    } lines`
+  );
+
   return { aboveText, belowText };
 }
 
-function calculateLineBoundariesWithMaxWordsLimmits(lineAbove: number, lineBelow: number, editor: vscode.TextEditor, maxWords: number) {
-  let aboveWordCounter = 0;
-  let belowWordCounter = 0;
+function debugLog(message: any) {
+  if (isDebugMode()) {
+    console.log(message);
+  }
+}
+
+function calculateLineBoundariesWithMaxTokensLimmit(
+  lineAbove: number,
+  lineBelow: number,
+  editor: vscode.TextEditor,
+  maxTokens: number
+) {
+  //let aboveTokens = 0;
+  //let belowTokens = 0;
+  let totalTokens = 0;
+  const maxLines = 8192;
 
   let iterationCounter = 0;
-  while (iterationCounter < 1024) {
+  while (iterationCounter < maxLines) {
     let outOfAboveLines = lineAbove < 0;
     let outOfBelowLines = lineBelow >= editor.document.lineCount;
     if (outOfAboveLines && outOfBelowLines) {
@@ -55,13 +136,17 @@ function calculateLineBoundariesWithMaxWordsLimmits(lineAbove: number, lineBelow
     }
 
     if (!outOfAboveLines) {
-      aboveWordCounter += editor.document.lineAt(lineAbove).text.split(' ').length;
-      if (aboveWordCounter + belowWordCounter > maxWords) { break; }
+      totalTokens += countTokens(editor.document.lineAt(lineAbove).text);
+      if (totalTokens > maxTokens) {
+        break;
+      }
     }
 
     if (!outOfBelowLines) {
-      belowWordCounter += editor.document.lineAt(lineBelow).text.split(' ').length;
-      if (aboveWordCounter + belowWordCounter > maxWords) { break; }
+      totalTokens += countTokens(editor.document.lineAt(lineBelow).text);
+      if (totalTokens > maxTokens) {
+        break;
+      }
     }
 
     lineAbove--;
@@ -69,9 +154,13 @@ function calculateLineBoundariesWithMaxWordsLimmits(lineAbove: number, lineBelow
     iterationCounter++;
   }
 
-  if (lineAbove < 0) { lineAbove = 0; }
-  if (lineBelow >= editor.document.lineCount) { lineBelow = editor.document.lineCount - 1; }
-  return { lineAbove, lineBelow };
+  if (lineAbove < 0) {
+    lineAbove = 0;
+  }
+  if (lineBelow >= editor.document.lineCount) {
+    lineBelow = editor.document.lineCount - 1;
+  }
+  return { lineAbove, lineBelow, totalTokens };
 }
 
 function getLanguageId(editor: vscode.TextEditor) {
@@ -80,8 +169,8 @@ function getLanguageId(editor: vscode.TextEditor) {
 }
 
 function getExpertAndLanguage(editor: vscode.TextEditor) {
-  let expert = '';
-  let language = '';
+  let expert = "software developer";
+  let language = "";
   const languageId = getLanguageId(editor);
 
   switch (languageId) {
@@ -131,6 +220,7 @@ function getExpertAndLanguage(editor: vscode.TextEditor) {
       break;
     case "json":
       language = "JSON";
+      expert = "Web developer";
       break;
     case "yaml":
       language = "YAML";
@@ -160,9 +250,81 @@ function getExpertAndLanguage(editor: vscode.TextEditor) {
       language = "Kotlin";
       expert = "Android developer";
       break;
+    case "sql":
+      language = "SQL";
+      expert = "Database developer";
+      break;
   }
 
-  return { expert, language };
+  return { expert, language, languageId };
+}
+
+function commentOutLine(languageId: string, line: string): string {
+  let commentedLine = "";
+
+  switch (languageId) {
+    case "dart":
+      commentedLine = `// ` + line;
+      break;
+    case "javascript":
+      commentedLine = `// ` + line;
+      break;
+    case "typescript":
+      commentedLine = `// ` + line;
+      break;
+    case "python":
+      commentedLine = `# "` + line;
+      break;
+    case "java":
+      commentedLine = `// ` + line;
+      break;
+    case "csharp":
+      commentedLine = `// ` + line;
+      break;
+    case "go":
+      commentedLine = `// ` + line;
+      break;
+    case "ruby":
+      commentedLine = `# ` + line;
+      break;
+    case "rust":
+      commentedLine = `// ` + line;
+      break;
+    case "html":
+      commentedLine = `<!-- ` + line + `-->`;
+      break;
+    case "css":
+      commentedLine = `/* ` + line + `*/`;
+      break;
+    case "yaml":
+      commentedLine = `# ` + line;
+      break;
+    case "c":
+      commentedLine = `// ` + line;
+      break;
+    case "cpp":
+      commentedLine = `// ` + line;
+      break;
+    case "swift":
+      commentedLine = `// ` + line;
+      break;
+    case "objective-c":
+      commentedLine = `// ` + line;
+      break;
+    case "objective-cpp":
+      commentedLine = `// ` + line;
+      break;
+    case "kotlin":
+      commentedLine = `// ` + line;
+      break;
+    case "sql":
+      commentedLine = `-- ` + line;
+      break;
+    default:
+      commentedLine = `// ` + line;
+  }
+
+  return commentedLine;
 }
 
 function getElapsedSeconds(start: number): string {
@@ -171,11 +333,49 @@ function getElapsedSeconds(start: number): string {
   return duration;
 }
 
+type Message = {
+  role: string;
+  content: string;
+};
+
+type Role = "system" | "user" | "assistant";
+
+function addMessageToPrompt(
+  messages: Message[],
+  content: string,
+  role: Role
+){
+  messages.push({ role, content });
+}
+
+// Wrapper for adding a system message to the prompt
+function addSystem(messages: Message[], content: string) {
+  return addMessageToPrompt(messages, content, "system");
+}
+
+// Wrapper for adding a user message to the prompt
+function addUser(messages: Message[], content: string) {
+  return addMessageToPrompt(messages, content, "user");
+}
+
+// Wrapper for adding an assistant message to the prompt
+function addAssistant(messages: Message[], content: string){
+  return addMessageToPrompt(messages, content, "assistant");
+}
+
 export {
   updateProgress,
   getCodeAroundCursor,
-  getTextAroundSelection as getCodeAroundSelection,
+  getTextAroundSelection,
   getLanguageId,
   getExpertAndLanguage,
-  getElapsedSeconds as getElapsed
+  getElapsedSeconds,
+  isDebugMode,
+  PromptCompleter,
+  debugLog,
+  Message,
+  addSystem,
+  addUser,
+  addAssistant,
+  commentOutLine
 };

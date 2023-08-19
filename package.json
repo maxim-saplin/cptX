@@ -2,7 +2,7 @@
   "name": "cptx",
   "displayName": "cptX: ChatGPT as copilot",
   "description": "Use ChatGPT as your (aslmost)free copilot",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "publisher": "MaximSaplin",
   "icon": "images/icon.png",
   "engines": {
@@ -62,6 +62,12 @@
           "order": 3,
           "type": "string",
           "markdownDescription": "Azure deploymnet name, (see https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference)"
+        },
+        "cptx.ContextSize": {
+          "order": 4,
+          "default": 4096,
+          "type": "number",
+          "markdownDescription": "Model contxt/window size in tokens. E.g. gpt3.5 has default context size of 4096. The larger context is available to teh plugin, the more relevant info might be packed into request."
         }
       }
     },
@@ -104,6 +110,7 @@
     "webpack-cli": "^5.0.2"
   },
   "dependencies": {
-    "@azure/openai": "^1.0.0-beta.2"
+    "@azure/openai": "^1.0.0-beta.2",
+    "@dqbd/tiktoken": "^1.0.7"
   }
 }

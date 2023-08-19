@@ -1,0 +1,4 @@
+# Silencing Dart analyzer if it happens to be working in the same dir and producing Dart errors for no reason
+analyzer:
+  exclude:
+    - /*

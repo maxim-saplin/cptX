@@ -1,4 +1,7 @@
 {
+	"exclude": [
+		"backlog/*"
+		],
 	"compilerOptions": {
 		"module": "commonjs",
 		"target": "ES2020",
