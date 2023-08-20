@@ -164,6 +164,7 @@ function calculateLineBoundariesWithMaxTokensLimmit(
 }
 
 function getLanguageId(editor: vscode.TextEditor) {
+  // https://code.visualstudio.com/docs/languages/identifiers
   const languageId = editor.document.languageId;
   return languageId;
 }
