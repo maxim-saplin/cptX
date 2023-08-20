@@ -69,7 +69,7 @@ async function getCompletion(
   messages: ChatMessage[] /*prompt: string*/
 ) {
   const completion = await client.getChatCompletions(model, messages, {
-    temperature: 0.0,
+    temperature: 0.15,
   });
 
   let reply = completion.choices[0].message?.content ?? "";
