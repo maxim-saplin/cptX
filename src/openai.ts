@@ -5,7 +5,7 @@ import {
   OpenAIKeyCredential,
 } from "@azure/openai";
 import * as vscode from "vscode";
-import { Message, PromptCompleter } from "./common";
+import { Completion, Message, PromptCompleter } from "./common";
 
 function getAzureSettings(): {
   apiProvider: string;
@@ -67,19 +67,23 @@ async function getCompletion(
   client: OpenAIClient,
   model: string,
   messages: ChatMessage[] /*prompt: string*/
-) {
+): Promise<Completion> {
   const completion = await client.getChatCompletions(model, messages, {
-    temperature: 0.15,
+    temperature: 0.0,
   });
 
   let reply = completion.choices[0].message?.content ?? "";
 
-  return reply;
+  return {
+    reply,
+    promptTokens: completion.usage.promptTokens,
+    completionTokens: completion.usage.completionTokens,
+  };
 }
 
-function getCompleter() : PromptCompleter {
+function getCompleter(): PromptCompleter {
   function _getCompleter(client: OpenAIClient, model: string): PromptCompleter {
-    return function (messages: Message[]): Promise<string> {
+    return function (messages: Message[]): Promise<Completion> {
       return getCompletion(client, model, messages);
     };
   }
@@ -89,4 +93,4 @@ function getCompleter() : PromptCompleter {
   return _getCompleter(client, model);
 }
 
-export {getCompleter};
+export { getCompleter };

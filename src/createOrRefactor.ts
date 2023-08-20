@@ -37,16 +37,24 @@ export async function createOrRefactor(
         const refactor = selectedCode.length > 0;
         let aboveText = "";
         let belowText = "";
-        let whatToDoTokens =common.countTokens(whatToDo);
+        let knownTokens = common.countTokens(whatToDo)+getEmptyPromptTokens();
+        let editorTextTokens = 0;
         if (refactor) {
-          ({ aboveText, belowText } = common.getCodeAroundSelection(editor, whatToDoTokens));
+          ({ aboveText, belowText, tokens: editorTextTokens } = common.getCodeAroundSelection(
+            editor,
+            knownTokens
+          ));
         } else {
-          ({ aboveText, belowText } = common.getCodeAroundCursor(editor, whatToDoTokens));
+          ({ aboveText, belowText, tokens: editorTextTokens } = common.getCodeAroundCursor(
+            editor,
+            knownTokens
+          ));
         }
 
         let { expert, language, languageId } =
           common.getExpertAndLanguage(editor);
 
+        let calculatedPromptTokens = knownTokens + editorTextTokens;
         let prompt = compilePrompt(
           whatToDo,
           selectedCode,
@@ -62,8 +70,10 @@ export async function createOrRefactor(
           debugLog(prompt[m].content);
         }
 
-        let result = await propmptCompleter(prompt);
-        result = common.removeTripleBackticks(result); //With GPT3.5 Jine 2023 version the model can't resist and often returns code block enclosed in backticks, i.e. ```typescript
+        let  {reply: result, promptTokens, completionTokens} = await propmptCompleter(prompt);
+
+        debugLog('\n↓ ↓ ↓ reply↓ ↓ ↓ \n'+result);
+        result = common.extractBlockBetweenTripleBackticks(result); //With GPT3.5 Jine 2023 version the model can't resist and often returns code block enclosed in backticks, i.e. ```typescript
         clearInterval(interval);
         progress.report({ increment: 100 });
 
@@ -99,7 +109,7 @@ export async function createOrRefactor(
             editor.selection = new vscode.Selection(startPos, endPos);
           }
           vscode.window.showInformationMessage(
-            `cptX completed operation (${common.getElapsedSeconds(start)}s)`
+            `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens (${promptTokens}|${promptTokens+completionTokens})`
           );
 
           await vscode.commands.executeCommand("editor.action.formatSelection");
@@ -128,7 +138,25 @@ export async function createOrRefactor(
   }
 }
 
+var _emptyPromptTokens = -1;
 
+function getEmptyPromptTokens(): number {
+  if (_emptyPromptTokens < 0) {
+    let emptyPrompt = compilePrompt(
+      "",
+      "",
+      "testfile.php",
+      "testcodeabove",
+      "testcodebelow",
+      "PHP Developer",
+      "PHP",
+      "php"
+    );
+    const foldedPrompt = emptyPrompt.map((message) => message.content).join("");
+    _emptyPromptTokens = common.countTokens(foldedPrompt);
+  }
+  return _emptyPromptTokens;
+}
 
 // In v2 of the prompt chat with multiple messages exchangaed changed single response/request
 // one message prompt in v1. This was done to trick model to always responds with valid code block
@@ -161,28 +189,33 @@ function compilePrompt(
   systemMessage += `\n`;
   let instructions = `- Carefully follow the instructions\n`;
   instructions += `- Make sure that you only respond with a valid${language} code block and only with a valid${language} code block\n`;
-  instructions += `- Don't wrap you repsonse into markdown until asked specifically`; // quite often woth June versions of OpenAI I see mede returnig blocked wraped in MD, e.g. ```dart ...
-  instructions += `- Do not enclose your output in tripple backticks \`\`\`\n`;
-  instructions += `- Be concise\n`;
+  instructions += `- Do not return any lines that can break compilation\n`;
+  instructions += `- Don't wrap you repsonse into markdown until asked specifically\n`; // quite often woth June versions of OpenAI I see mede returnig blocked wraped in MD, e.g. ```dart ...
+  //instructions += `- Do not enclose your output in tripple backticks (\`\`\`)\n`;
+  //instructions += `- Be concise\n`;
   instructions += `- Do not repeat the surrounding code provided as context (above and below code)\n`;
   instructions += `- Use${language} comments to escape any free text\n`;
-  instructions += `- If there're instructions for the user provide them as{language} comments before the produce code block\n`;
-  instructions += `- You can also use inline${language} comments\n`;
+  instructions += `- If there're instructions for the user provide them as${language} comments before the produce code block\n`;
+  instructions += `- You can use inline${language} comment as part of the code block\n`;
   instructions += `- Do not leave messages and do not add any text after the code block you will create\n`;
-  instructions += `- The code you will produce will plug into the code in the open editor as-is and can't break it\n`;
+  instructions += `- The response you will produce will plug into the code in the open editor as-is and it must not break it\n`;
+  instructions += `- Do not ask if I need any further assistance.\n`;
 
   common.addSystem(messages, systemMessage);
   common.addUser(messages, `Ready?)`);
   common.addAssistant(
     messages,
-    common.commentOutLine(languageId, `OK`) +
+    common.commentOutLine(languageId, `I am ready.`) +
       `\n` +
-      common.commentOutLine(languageId, `I am ready`)
+      common.commentOutLine(
+        languageId,
+        `I will only reply with valid${language} programing language syntax and wrap any free text in comments.`
+      )
   );
 
   const refactor = selectedCode.trim().length > 0;
 
-  common.addUser(messages, `Here is the instruction -> \n\n${whatToDo}`);
+  common.addUser(messages, whatToDo);
 
   common.addAssistant(
     messages,
@@ -223,12 +256,16 @@ function compilePrompt(
           messages,
           `For the context, here's part of the code above the selection`
         );
+        common.addAssistant(
+          messages,
+          common.commentOutLine(languageId, "Awaiting code snippet")
+        );
         common.addUser(messages, aboveCode);
         aboveAdded = true;
       }
       if (belowCode.trim().length !== 0) {
         let assistant = aboveAdded
-          ? `Is there more code below`
+          ? `Is there more code below?`
           : `Please provide surrounding code if any`;
         common.addAssistant(
           messages,
@@ -239,6 +276,10 @@ function compilePrompt(
           (!aboveAdded ? `For the context, here's` : `And here's`) +
             `part of the code below the selection`
         );
+        common.addAssistant(
+          messages,
+          common.commentOutLine(languageId, "Awaiting code snippet")
+        );
         common.addUser(messages, belowCode);
       }
 
@@ -248,19 +289,18 @@ function compilePrompt(
           ` By doing so you will create duplication code and break code in edotr.`
       );
     }
-  } else {
-    // const above = aboveText.split(`\n`).slice(-7).join(`\n`);
-    // const below = belowText.split(`\n`).slice(0, 7).join(`\n`);
-
+  } 
+  // NO CODE SELECTED
+  else { 
     common.addUser(
       messages,
       `Your code block will be inserted at the current cursor location.`
-        // TODO: decide how start and end of top line cursor possition affects the contents of above text. I.e. currently if you put curosr at the beginning of the first line the above text contains the full line
-        // (aboveCode.trim().length === 0
-        //   ? `The cursor is currently located at the top of the file.`
-        //   : belowText.trim().length === 0
-        //   ? `The cursor is currently located at the bottom of the file.`
-        //   : ``)
+      // TODO: decide how start and end of top line cursor possition affects the contents of above text. I.e. currently if you put curosr at the beginning of the first line the above text contains the full line
+      // (aboveCode.trim().length === 0
+      //   ? `The cursor is currently located at the top of the file.`
+      //   : belowText.trim().length === 0
+      //   ? `The cursor is currently located at the bottom of the file.`
+      //   : ``)
     );
     // if (above.trim().length !== 0) {
     //   s += `after the following lines:\n\n` + above + `\n\n`;
@@ -276,19 +316,35 @@ function compilePrompt(
     );
 
     if (contextExistis) {
+      let aboveAdded = false;
       if (aboveCode.trim().length !== 0) {
         common.addUser(
           messages,
           `For the context, here's the code that is located abover the cursor`
         );
+        common.addAssistant(
+          messages,
+          common.commentOutLine(languageId, "Awaiting code snippet")
+        );
         common.addUser(messages, aboveCode);
+        aboveAdded = true;
       }
 
       if (belowCode.trim().length !== 0) {
+        if (aboveAdded) {
+          common.addAssistant(
+            messages,
+            common.commentOutLine(languageId, `Is there more code below?`)
+          );
+        }
         common.addUser(
           messages,
           `For the context, here's the code that is located below the cursor`
         );
+        common.addAssistant(
+            messages,
+            common.commentOutLine(languageId, "Awaiting code snippet")
+          );
         common.addUser(messages, belowCode);
       }
     } else {
@@ -306,8 +362,8 @@ function compilePrompt(
 
   common.addUser(
     messages,
-    `Please proceed and don't forget that from this point` +
-      ` I won't be repling to you and your next response will be automatically inserted into VSCode as-is.` +
+    `Please proceed and return the code block. Don't forget that from this point` +
+      ` I won't be repling to you. Your next response will be automatically inserted into VSCode editor as-is.` +
       ` Remember the instructions:\n` +
       instructions
   );

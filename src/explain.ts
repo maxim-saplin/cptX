@@ -54,7 +54,7 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
 
         for(var m in prompt) { debugLog(prompt[m]);};
 
-        const explanation = await propmptCompleter(prompt);
+        let {reply: explanation, promptTokens, completionTokens} = await propmptCompleter(prompt);
 
         if (explanation.trim().length === 0 && !token.isCancellationRequested) {
           vscode.window.showInformationMessage(
@@ -68,7 +68,7 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
           // check if token is canceled before showing info message
           vscode.window.showInformationMessage(explanation, { modal: true });
           vscode.window.showInformationMessage(
-            `cptX completed operation (${common.getElapsedSeconds(start)}s)`
+            `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens (${promptTokens}|${promptTokens+completionTokens})`
           );
         }
       }

@@ -31,7 +31,7 @@ const encoding = get_encoding("cl100k_base");
 const contextSize =
   vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ?? 2048;
 // This is the number of tokens that goes in the first request leaving the rest for completion and insertion into editor
-const maxTokensInRequest = 0.65 * contextSize;
+const maxTokensInRequest = 0.67 * contextSize;
 
 function countTokens(input: string): number {
   const tokens = encoding.encode(input).length;
@@ -47,15 +47,19 @@ function countTokens(input: string): number {
  * @returns An object containing the code above the cursor, the code below the cursor, and the cursor line number.
  */
 
-function getCodeAroundCursor(editor: vscode.TextEditor, tokensAlreadyInRequest:number ) : { aboveText: string, belowText: string, cursorLine: number }  {
+function getCodeAroundCursor(
+  editor: vscode.TextEditor,
+  tokensAlreadyInRequest: number
+): { aboveText: string; belowText: string; cursorLine: number; tokens: number } {
   const cursorLine = editor.selection.active.line;
   let lineAbove = cursorLine - 1;
   let lineBelow = cursorLine + 1;
-  ({ lineAbove, lineBelow } = calculateLineBoundariesWithMaxTokensLimmit(
+  let totalTokens = 0;
+  ({ lineAbove, lineBelow, totalTokens } = calculateLineBoundariesWithMaxTokensLimmit(
     lineAbove,
     lineBelow,
     editor,
-    maxTokensInRequest-tokensAlreadyInRequest
+    maxTokensInRequest - tokensAlreadyInRequest
   ));
 
   var aboveText = editor.document.getText(
@@ -64,10 +68,16 @@ function getCodeAroundCursor(editor: vscode.TextEditor, tokensAlreadyInRequest:n
   var belowText = editor.document.getText(
     new vscode.Range(cursorLine + 1, 0, lineBelow, 0)
   );
-  return { aboveText, belowText, cursorLine };
+  return { aboveText, belowText, cursorLine, tokens: totalTokens };
 }
 
-type PromptCompleter = (messages: Message[]) => Promise<string>;
+type PromptCompleter = (messages: Message[]) => Promise<Completion>;
+
+type Completion = {
+  reply: string;
+  promptTokens: number;
+  completionTokens: number;
+};
 
 /**
  * Retrieves the code around the selected block in the TextEditor.
@@ -78,7 +88,10 @@ type PromptCompleter = (messages: Message[]) => Promise<string>;
  * @returns An object containing the code above the cursor, the code below the cursor, and the cursor line number.
  */
 
-function getCodeAroundSelection(editor: vscode.TextEditor, tokensAlreadyInRequest:number): { aboveText: string, belowText: string } {
+function getCodeAroundSelection(
+  editor: vscode.TextEditor,
+  tokensAlreadyInRequest: number
+): { aboveText: string; belowText: string; tokens: number } {
   const start = performance.now();
 
   let lineAbove = editor.selection.start.line - 1;
@@ -89,7 +102,7 @@ function getCodeAroundSelection(editor: vscode.TextEditor, tokensAlreadyInReques
       lineAbove,
       lineBelow,
       editor,
-      maxTokensInRequest-tokensAlreadyInRequest
+      maxTokensInRequest - tokensAlreadyInRequest
     ));
 
   var aboveText = editor.document.getText(
@@ -115,7 +128,7 @@ function getCodeAroundSelection(editor: vscode.TextEditor, tokensAlreadyInReques
     } lines`
   );
 
-  return { aboveText, belowText };
+  return { aboveText, belowText, tokens: totalTokens };
 }
 
 function debugLog(message: any) {
@@ -389,12 +402,25 @@ function removeTripleBackticks(input: string): string {
   }
 
   lines = lines.slice(startIndex, endIndex + 1);
+  startIndex = 0;
+  endIndex = lines.length - 1;
 
-  if (lines.length > 0 && lines[0].startsWith("```")) {
-    lines.shift();
+  // Find tripple backticks
+  while (startIndex <= endIndex) {
+    if (lines[startIndex].trim().startsWith("```")) {
+      break;
+    }
+    startIndex++;
   }
-  if (lines.length > 0 && lines[lines.length - 1].startsWith("```")) {
-    lines.pop();
+  while (endIndex >= startIndex) {
+    if (lines[endIndex].trim().startsWith("```")) {
+      break;
+    }
+    endIndex--;
+  }
+
+  if (startIndex +1 <= endIndex-1 && startIndex >= 0 && endIndex < lines.length ) {
+    lines = lines.slice(startIndex+1, endIndex);
   }
 
   return lines.join("\n");
@@ -409,12 +435,13 @@ export {
   getElapsedSeconds,
   isDebugMode,
   PromptCompleter,
+  Completion,
   debugLog,
   Message,
   addSystem,
   addUser,
   addAssistant,
   commentOutLine,
-  removeTripleBackticks,
-  countTokens
+  removeTripleBackticks as extractBlockBetweenTripleBackticks,
+  countTokens,
 };
