@@ -38,7 +38,8 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
       async (progress, token) => {
         // added token parameter
         interval = common.updateProgress(progress, start);
-        let { aboveText, belowText } = common.getTextAroundSelection(editor);
+        let requestTokens =common.countTokens(request);
+        let { aboveText, belowText } = common.getCodeAroundSelection(editor, requestTokens);
 
         let { expert, language } = common.getExpertAndLanguage(editor);
         const prompt = compilePrompt(

@@ -37,10 +37,11 @@ export async function createOrRefactor(
         const refactor = selectedCode.length > 0;
         let aboveText = "";
         let belowText = "";
+        let whatToDoTokens =common.countTokens(whatToDo);
         if (refactor) {
-          ({ aboveText, belowText } = common.getTextAroundSelection(editor));
+          ({ aboveText, belowText } = common.getCodeAroundSelection(editor, whatToDoTokens));
         } else {
-          ({ aboveText, belowText } = common.getCodeAroundCursor(editor));
+          ({ aboveText, belowText } = common.getCodeAroundCursor(editor, whatToDoTokens));
         }
 
         let { expert, language, languageId } =
@@ -127,6 +128,8 @@ export async function createOrRefactor(
   }
 }
 
+
+
 // In v2 of the prompt chat with multiple messages exchangaed changed single response/request
 // one message prompt in v1. This was done to trick model to always responds with valid code block
 // (rather than conversational style of responses with code block diluted with free text)
@@ -136,7 +139,7 @@ function compilePrompt(
   selectedCode: string,
   fileName: string,
   aboveCode: string,
-  belowText: string,
+  belowCode: string,
   expert: string,
   language: string,
   languageId: string
@@ -191,7 +194,7 @@ function compilePrompt(
       )
   );
 
-  let contextExistis = aboveCode.trim().length !== 0 || belowText.trim().length;
+  let contextExistis = aboveCode.trim().length !== 0 || belowCode.trim().length;
 
   if (refactor) {
     common.addUser(
@@ -223,7 +226,7 @@ function compilePrompt(
         common.addUser(messages, aboveCode);
         aboveAdded = true;
       }
-      if (belowText.trim().length !== 0) {
+      if (belowCode.trim().length !== 0) {
         let assistant = aboveAdded
           ? `Is there more code below`
           : `Please provide surrounding code if any`;
@@ -236,7 +239,7 @@ function compilePrompt(
           (!aboveAdded ? `For the context, here's` : `And here's`) +
             `part of the code below the selection`
         );
-        common.addUser(messages, belowText);
+        common.addUser(messages, belowCode);
       }
 
       common.addUser(
@@ -281,12 +284,12 @@ function compilePrompt(
         common.addUser(messages, aboveCode);
       }
 
-      if (belowText.trim().length !== 0) {
+      if (belowCode.trim().length !== 0) {
         common.addUser(
           messages,
           `For the context, here's the code that is located below the cursor`
         );
-        common.addUser(messages, aboveCode);
+        common.addUser(messages, belowCode);
       }
     } else {
       common.addUser(messages, "The file is currently empty");

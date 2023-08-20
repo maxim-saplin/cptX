@@ -38,9 +38,16 @@ function countTokens(input: string): number {
   return tokens;
 }
 
-function getCodeAroundCursor(editor: vscode.TextEditor) {
-  const maxWords = 2500;
+/**
+ * Retrieves the code around the cursor in the TextEditor.
+ * Limmits the number of text to max token ceiling based on settings (ContextSize).
+ *
+ * @param editor The vscode.TextEditor object representing the active editor.
+ * @param tokensAlreadyInRequest gives the function knowledge how many tokens are already reserved/in use (e.g. instruction, prompt)
+ * @returns An object containing the code above the cursor, the code below the cursor, and the cursor line number.
+ */
 
+function getCodeAroundCursor(editor: vscode.TextEditor, tokensAlreadyInRequest:number ) : { aboveText: string, belowText: string, cursorLine: number }  {
   const cursorLine = editor.selection.active.line;
   let lineAbove = cursorLine - 1;
   let lineBelow = cursorLine + 1;
@@ -48,7 +55,7 @@ function getCodeAroundCursor(editor: vscode.TextEditor) {
     lineAbove,
     lineBelow,
     editor,
-    maxWords
+    maxTokensInRequest-tokensAlreadyInRequest
   ));
 
   var aboveText = editor.document.getText(
@@ -63,14 +70,15 @@ function getCodeAroundCursor(editor: vscode.TextEditor) {
 type PromptCompleter = (messages: Message[]) => Promise<string>;
 
 /**
- * Retrieves the code around the cursor in the TextEditor.
+ * Retrieves the code around the selected block in the TextEditor.
  * Limmits the number of text to max token ceiling based on settings (ContextSize).
  *
  * @param editor The vscode.TextEditor object representing the active editor.
+ * @param tokensAlreadyInRequest gives the function knowledge how many tokens are already reserved/in use (e.g. instruction, prompt)
  * @returns An object containing the code above the cursor, the code below the cursor, and the cursor line number.
  */
 
-function getTextAroundSelection(editor: vscode.TextEditor) {
+function getCodeAroundSelection(editor: vscode.TextEditor, tokensAlreadyInRequest:number): { aboveText: string, belowText: string } {
   const start = performance.now();
 
   let lineAbove = editor.selection.start.line - 1;
@@ -81,7 +89,7 @@ function getTextAroundSelection(editor: vscode.TextEditor) {
       lineAbove,
       lineBelow,
       editor,
-      maxTokensInRequest
+      maxTokensInRequest-tokensAlreadyInRequest
     ));
 
   var aboveText = editor.document.getText(
@@ -125,7 +133,7 @@ function calculateLineBoundariesWithMaxTokensLimmit(
   //let aboveTokens = 0;
   //let belowTokens = 0;
   let totalTokens = 0;
-  const maxLines = 8192;
+  const maxLines = 16384;
 
   let iterationCounter = 0;
   while (iterationCounter < maxLines) {
@@ -395,7 +403,7 @@ function removeTripleBackticks(input: string): string {
 export {
   updateProgress,
   getCodeAroundCursor,
-  getTextAroundSelection,
+  getCodeAroundSelection,
   getLanguageId,
   getExpertAndLanguage,
   getElapsedSeconds,
@@ -408,4 +416,5 @@ export {
   addAssistant,
   commentOutLine,
   removeTripleBackticks,
+  countTokens
 };
