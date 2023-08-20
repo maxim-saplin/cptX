@@ -108,10 +108,10 @@ The extension does not use the public chat at https://chat.openai.com/ which was
 ## Release Notes
 
 ### 1.0.0
- - LLM context size can be defined in params
+ - New prompts for better results (system message, multiple user messages)
+ - LLM context size can be defined in settings
  - Tokenizer for better management of context size (tiktoken)
- - Google Analytics
- - Updated to prompts for better results (system message, multiple user messages)
+ - VSCode Telemetry
 
 ### 0.0.9
  - Updated Microsoft openai client library fixing Azure auth (https://github.com/Azure/azure-sdk-for-js/issues/26021) 
