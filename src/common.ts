@@ -250,6 +250,10 @@ function getExpertAndLanguage(editor: vscode.TextEditor) {
       language = "Kotlin";
       expert = "Android developer";
       break;
+    case "php":
+      language = "PHP";
+      expert = "PHP developer";
+      break;
     case "sql":
       language = "SQL";
       expert = "Database developer";
@@ -315,6 +319,9 @@ function commentOutLine(languageId: string, line: string): string {
       commentedLine = `// ` + line;
       break;
     case "kotlin":
+      commentedLine = `// ` + line;
+      break;
+    case "php":
       commentedLine = `// ` + line;
       break;
     case "sql":

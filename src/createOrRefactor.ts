@@ -127,6 +127,10 @@ export async function createOrRefactor(
   }
 }
 
+// In v2 of the prompt chat with multiple messages exchangaed changed single response/request
+// one message prompt in v1. This was done to trick model to always responds with valid code block
+// (rather than conversational style of responses with code block diluted with free text)
+// and to try make it do best to ensure maximum 'pluggability' of the produced code into editor
 function compilePrompt(
   whatToDo: string,
   selectedCode: string,
@@ -248,6 +252,7 @@ function compilePrompt(
     common.addUser(
       messages,
       `Your code block will be inserted at the current cursor location.`
+        // TODO: decide how start and end of top line cursor possition affects the contents of above text. I.e. currently if you put curosr at the beginning of the first line the above text contains the full line
         // (aboveCode.trim().length === 0
         //   ? `The cursor is currently located at the top of the file.`
         //   : belowText.trim().length === 0
