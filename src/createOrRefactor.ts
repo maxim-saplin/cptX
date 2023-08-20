@@ -39,6 +39,7 @@ export async function createOrRefactor(
         let belowText = "";
         let knownTokens = common.countTokens(whatToDo)+getEmptyPromptTokens();
         let editorTextTokens = 0;
+        
         if (refactor) {
           ({ aboveText, belowText, tokens: editorTextTokens } = common.getCodeAroundSelection(
             editor,
@@ -109,8 +110,9 @@ export async function createOrRefactor(
             editor.selection = new vscode.Selection(startPos, endPos);
           }
           vscode.window.showInformationMessage(
-            `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens (${promptTokens}|${promptTokens+completionTokens})`
+            `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens sent ${promptTokens}, total ${promptTokens+completionTokens})`
           );
+          debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
 
           await vscode.commands.executeCommand("editor.action.formatSelection");
         }

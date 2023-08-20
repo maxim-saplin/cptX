@@ -38,10 +38,11 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
       async (progress, token) => {
         // added token parameter
         interval = common.updateProgress(progress, start);
-        let requestTokens =common.countTokens(request);
-        let { aboveText, belowText } = common.getCodeAroundSelection(editor, requestTokens);
+        let knownTokens = common.countTokens(request)+getEmptyPromptTokens();
+        let { aboveText, belowText, tokens: editorTextTokens } = common.getCodeAroundSelection(editor, knownTokens);
 
         let { expert, language } = common.getExpertAndLanguage(editor);
+        let calculatedPromptTokens = knownTokens + editorTextTokens;
         const prompt = compilePrompt(
           request,
           selectedCode,
@@ -52,9 +53,10 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
           language
         );
 
-        for(var m in prompt) { debugLog(prompt[m]);};
+        for(var m in prompt) { debugLog(prompt[m].content);};
 
         let {reply: explanation, promptTokens, completionTokens} = await propmptCompleter(prompt);
+        debugLog('\n↓ ↓ ↓ reply↓ ↓ ↓ \n'+explanation);
 
         if (explanation.trim().length === 0 && !token.isCancellationRequested) {
           vscode.window.showInformationMessage(
@@ -70,6 +72,7 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
           vscode.window.showInformationMessage(
             `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens (${promptTokens}|${promptTokens+completionTokens})`
           );
+          debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
         }
       }
     );
@@ -94,6 +97,25 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
       `Failed to generate explanation: ${addition}`
     );
   }
+}
+
+var _emptyPromptTokens = -1;
+
+function getEmptyPromptTokens(): number {
+  if (_emptyPromptTokens < 0) {
+    let emptyPrompt = compilePrompt(
+      "",
+      "",
+      "testfile.php",
+      "testcodeabove",
+      "testcodebelow",
+      "PHP Developer",
+      "PHP",
+    );
+    const foldedPrompt = emptyPrompt.map((message) => message.content).join("");
+    _emptyPromptTokens = common.countTokens(foldedPrompt);
+  }
+  return _emptyPromptTokens;
 }
 
 function compilePrompt(
