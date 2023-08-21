@@ -14,7 +14,7 @@ function initTelemetry(): TelemetryReporter {
 // send event any time after activation
 function sendExtensionStarted() {
   if (reporter) {
-    reporter.sendTelemetryEvent("extensionStarted");
+    reporter.sendTelemetryEvent('extensionStarted');
   }
 }
 
@@ -25,7 +25,7 @@ function sendCreateEvent(
   durationSeconds: number
 ) {
   if (reporter) {
-    reporter.sendTelemetryEvent("createCommand", undefined, {
+    reporter.sendTelemetryEvent('createCommand', undefined, {
       contextSize: getContextSize(),
       promptTokensCalculated: promptTokensCalculated,
       propmtTokens: propmtTokens,
@@ -37,7 +37,7 @@ function sendCreateEvent(
 
 function sendCreateCanceledEvent(durationSeconds: number) {
   if (reporter) {
-    reporter.sendTelemetryEvent("createCommandCanceled", undefined, {
+    reporter.sendTelemetryEvent('createCommandCanceled', undefined, {
       contextSize: getContextSize(),
       durationSeconds: durationSeconds,
     });
@@ -51,7 +51,7 @@ function sendExplainEvent(
   durationSeconds: number
 ) {
   if (reporter) {
-    reporter.sendTelemetryEvent("explainCommand", undefined, {
+    reporter.sendTelemetryEvent('explainCommand', undefined, {
       contextSize: getContextSize(),
       promptTokensCalculated: promptTokensCalculated,
       propmtTokens: propmtTokens,
@@ -63,7 +63,7 @@ function sendExplainEvent(
 
 function sendExplainCanceledEvent(durationSeconds: number) {
   if (reporter) {
-    reporter.sendTelemetryEvent("explainCommandCanceled", undefined, {
+    reporter.sendTelemetryEvent('explainCommandCanceled', undefined, {
       contextSize: getContextSize(),
       durationSeconds: durationSeconds,
     });
@@ -77,7 +77,7 @@ function sendConfigurationChangedEvent(
   contextSize: number
 ) {
   if (reporter) {
-    reporter.sendTelemetryEvent("configurationChanged", {
+    reporter.sendTelemetryEvent('configurationChanged', {
       apiProvider: apiProvider,
       contextSize: contextSize.toString(),
     });
@@ -99,5 +99,5 @@ export {
   sendExplainEvent,
   sendCreateCanceledEvent,
   sendExplainCanceledEvent,
-  sendConfigurationChangedEvent
+  sendConfigurationChangedEvent,
 };
