@@ -37,6 +37,7 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
         cancellable: true,
       },
       async (progress, token) => {
+        token.onCancellationRequested((e) => sendExplainCanceledEvent(common.getElapsedSecondsNumber(start)));
         // added token parameter
         interval = common.updateProgress(progress, start);
         let knownTokens = common.countTokens(request)+getEmptyPromptTokens();
@@ -75,8 +76,6 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
             `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens (${promptTokens}|${promptTokens+completionTokens})`
           );
           debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
-        } else {
-          sendExplainCanceledEvent(common.getElapsedSecondsNumber(start));
         }
       }
     );

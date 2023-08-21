@@ -32,6 +32,7 @@ export async function createOrRefactor(
         cancellable: true,
       },
       async (progress, token) => {
+        token.onCancellationRequested((e) => sendCreateCanceledEvent(common.getElapsedSecondsNumber(start)));
         interval = common.updateProgress(progress, start);
 
         const selectedCode = editor.document.getText(editor.selection).trim();
@@ -117,8 +118,6 @@ export async function createOrRefactor(
           debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
 
           await vscode.commands.executeCommand("editor.action.formatSelection");
-        } else {
-          sendCreateCanceledEvent();
         }
       }
     );

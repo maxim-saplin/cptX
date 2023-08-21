@@ -99,4 +99,5 @@ export {
   sendExplainEvent,
   sendCreateCanceledEvent,
   sendExplainCanceledEvent,
+  sendConfigurationChangedEvent
 };
