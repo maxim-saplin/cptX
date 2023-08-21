@@ -1,5 +1,8 @@
 # Use ChatGPT as your (almost)free copilot
-Save time not copying and pasting code between VSCode and ChatGPT window. The extension gives GPT context (code surrounding cursor or selection), primes the model by asking it to act as an expert in the given technology/language, sends your prompt and inserts the returned code block to the editor.
+
+**! The extension has received updates to the prompt hopefully increasing the quality of replies and plug-ability of the generated code !**
+
+Save time not copying and pasting code between VSCode and ChatGPT window. The extension gives GPT context (code surrounding cursor or selection), primes the model by asking it to act as an expert in the given technology/language, sends your prompt and inserts the generated code block to the editor.
 
 OpenAI (Gpt3.5) and Azure (Gpt3.5 and Gpt4) are supported!!!
 
@@ -12,6 +15,7 @@ The extension is a great addition to Amazon CodeWhisperer or Github Copilot if y
 - Refactor selected code
 - Insert new code at the current cursor location
 - Ask for advice or explanation
+- Set larger model context size (e.g. use 16000 with gpt-3.5-turbo-16k) for larger files
 - Supports APIs provided by OpenAI and Azure (OpenAI models hosted by Microsoft as part of Cognitive Services)
     - 'gpt-3.5-turbo' model when using OpenAI, any chat model when using Azure ('gpt-35-turbo' OR 'gpt4')
 
@@ -99,6 +103,10 @@ The extension relies on APIs and cloud service by OpenAI and Microsoft. Both Ope
 - OpenAI [data usage polices](https://openai.com/policies/api-data-usage-policies) say that no data submitted via API is used for training or improving their models
 
 The extension does not use the public chat at https://chat.openai.com/ which was the source of news around leaks (user prompts used for training) and bans (explicitly restricting employees from using ChatGPT for work related matters).
+
+### Telemetry
+
+The extensions collect essential telemetry via standard VSCode library (https://github.com/Microsoft/vscode-extension-telemetry#readme - same library used by VSCode itself). It respects user settings, if in VSCode you opt-out of sharing data telemetry won't be sent (that is ensured by the library). The kind of data shared doesn't include any sensitive information (such as prompt texts, generated codes, API keys), but rather the fact of issuing a command, timings, token consumption, context size and kind of model used.
 
 ## Tips and Tricks
 
