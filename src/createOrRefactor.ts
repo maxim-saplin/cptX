@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import * as common from "./common";
 import { performance } from "perf_hooks";
 import { debugLog } from "./common";
+import { sendCreateCanceledEvent, sendCreateEvent } from "./telemetry";
 
 export async function createOrRefactor(
   propmptCompleter: common.PromptCompleter
@@ -88,6 +89,7 @@ export async function createOrRefactor(
         }
 
         if (!token.isCancellationRequested) {
+          sendCreateEvent(calculatedPromptTokens, promptTokens, completionTokens, common.getElapsedSecondsNumber(start));
           await editor.edit((editBuilder) => {
             if (refactor) {
               editBuilder.replace(editor.selection, result);
@@ -115,6 +117,8 @@ export async function createOrRefactor(
           debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
 
           await vscode.commands.executeCommand("editor.action.formatSelection");
+        } else {
+          sendCreateCanceledEvent();
         }
       }
     );

@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import * as common from "./common";
 import { performance } from "perf_hooks";
 import { debugLog } from "./common";
+import { sendExplainCanceledEvent, sendExplainEvent } from "./telemetry";
 
 async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
   let interval = undefined;
@@ -68,11 +69,14 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
         }
         if (!token.isCancellationRequested) {
           // check if token is canceled before showing info message
+          sendExplainEvent(calculatedPromptTokens, promptTokens, completionTokens, common.getElapsedSecondsNumber(start));
           vscode.window.showInformationMessage(explanation, { modal: true });
           vscode.window.showInformationMessage(
             `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens (${promptTokens}|${promptTokens+completionTokens})`
           );
           debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
+        } else {
+          sendExplainCanceledEvent(common.getElapsedSecondsNumber(start));
         }
       }
     );

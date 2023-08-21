@@ -28,10 +28,11 @@ function updateProgress(
 const isDebugMode = () => process.env.VSCODE_DEBUG_MODE === "true";
 
 const encoding = get_encoding("cl100k_base");
-const contextSize =
-  vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ?? 2048;
+function getContextSize() : number {
+  return vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ?? 2048;
+}
 // This is the number of tokens that goes in the first request leaving the rest for completion and insertion into editor
-const maxTokensInRequest = 0.67 * contextSize;
+const maxTokensInRequest = 0.67 * getContextSize();
 
 function countTokens(input: string): number {
   const tokens = encoding.encode(input).length;
@@ -362,6 +363,12 @@ function getElapsedSeconds(start: number): string {
   return duration;
 }
 
+function getElapsedSecondsNumber(start: number): number {
+  const end = performance.now();
+  const duration = ((end - start) / 1000); // return 1 decimal after point
+  return duration;
+}
+
 type Message = {
   role: string;
   content: string;
@@ -433,6 +440,7 @@ export {
   getLanguageId,
   getExpertAndLanguage,
   getElapsedSeconds,
+  getElapsedSecondsNumber,
   isDebugMode,
   PromptCompleter,
   Completion,
@@ -444,4 +452,5 @@ export {
   commentOutLine,
   removeTripleBackticks as extractBlockBetweenTripleBackticks,
   countTokens,
+  getContextSize,
 };
