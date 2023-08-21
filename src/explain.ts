@@ -40,7 +40,7 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
         token.onCancellationRequested((e) => sendExplainCanceledEvent(common.getElapsedSecondsNumber(start)));
         // added token parameter
         interval = common.updateProgress(progress, start);
-        let knownTokens = common.countTokens(request)+getEmptyPromptTokens();
+        let knownTokens = common.countTokens(request)+common.countTokens(selectedCode)+getEmptyPromptTokens();
         let { aboveText, belowText, tokens: editorTextTokens } = common.getCodeAroundSelection(editor, knownTokens);
 
         let { expert, language } = common.getExpertAndLanguage(editor);

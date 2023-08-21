@@ -39,7 +39,7 @@ export async function createOrRefactor(
         const refactor = selectedCode.length > 0;
         let aboveText = "";
         let belowText = "";
-        let knownTokens = common.countTokens(whatToDo)+getEmptyPromptTokens();
+        let knownTokens = common.countTokens(whatToDo)+common.countTokens(selectedCode)+getEmptyPromptTokens();
         let editorTextTokens = 0;
         
         if (refactor) {
