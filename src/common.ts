@@ -2,7 +2,7 @@ import { OpenAIClient } from "@azure/openai";
 import { RequestOptions } from "https";
 import { Performance, performance } from "perf_hooks";
 import * as vscode from "vscode";
-import { get_encoding } from "@dqbd/tiktoken";
+import { getEncoding } from "js-tiktoken";
 
 function updateProgress(
   progress: vscode.Progress<{
@@ -27,7 +27,7 @@ function updateProgress(
 
 const isDebugMode = () => process.env.VSCODE_DEBUG_MODE === "true";
 
-const encoding = get_encoding("cl100k_base");
+const encoding = getEncoding("cl100k_base");
 function getContextSize() : number {
   return vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ?? 2048;
 }

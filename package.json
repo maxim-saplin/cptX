@@ -1,7 +1,7 @@
 {
   "name": "cptx",
-  "displayName": "cptX: ChatGPT as copilot",
-  "description": "Use ChatGPT as your (aslmost)free copilot",
+  "displayName": "cptX 〉ChatGPT as Copilot",
+  "description": "Use ChatGPT as your (aslmost)free Copilot",
   "version": "1.0.0",
   "publisher": "MaximSaplin",
   "icon": "images/icon.png",
@@ -111,7 +111,7 @@
   },
   "dependencies": {
     "@azure/openai": "^1.0.0-beta.2",
-    "@dqbd/tiktoken": "^1.0.7",
-    "@vscode/extension-telemetry": "^0.8.3"
+    "@vscode/extension-telemetry": "^0.8.3",
+    "js-tiktoken": "^1.0.7"
   }
 }
