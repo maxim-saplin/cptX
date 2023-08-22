@@ -69,6 +69,7 @@ Azure requires a few more steps as OpenAI models require custom deployments befo
 2. Click the "View code" button under the "Chat Session" pane, here you can find the 3 params required by the extension
     
     <img src="images/oai.png" alt="drawing" width="650"/>
+
    
     - Endpoint (`openai.api_base`)
     - Deployment (`engine`)
