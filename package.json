@@ -2,7 +2,7 @@
   "name": "cptx",
   "displayName": "cptX 〉ChatGPT as Copilot",
   "description": "Use ChatGPT as your (aslmost)free Copilot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "MaximSaplin",
   "icon": "images/icon.png",
   "engines": {
@@ -12,6 +12,9 @@
     "url": "https://github.com/maxim-saplin/cptX"
   },
   "categories": [
+    "Programming Languages",
+    "Machine Learning",
+    "Education",
     "Other"
   ],
   "keywords": [
@@ -19,6 +22,7 @@
     "openai",
     "azure",
     "gpt4",
+    "gpt3",
     "copilot",
     "flutter",
     "dart",
@@ -26,10 +30,18 @@
     "java",
     "javascript",
     "typescript",
+    "python",
+    "golang",
+    "go",
     "ai",
     "code",
     "llm",
-    "refactor"
+    "refactor",
+    "assistant",
+    "coding",
+    "refactor",
+    "explain",
+    "test"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
@@ -74,11 +86,11 @@
     "commands": [
       {
         "command": "cptX.createOrRefactor",
-        "title": "cptX: Create new OR refactor existing code"
+        "title": "cptX 〉Create · Refactor"
       },
       {
         "command": "cptX.explainOrAsk",
-        "title": "cptX: Ask AI the question (e.g. explain)"
+        "title": "cptX 〉 Ask · Explain"
       }
     ]
   },
