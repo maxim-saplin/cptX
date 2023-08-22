@@ -67,13 +67,11 @@ Azure requires a few more steps as OpenAI models require custom deployments befo
 1. Go to https://oai.azure.com/portal and open chat playground
     - You can click in the right top corner and pick an endpoint/resource if there're multiple
 2. Click the "View code" button under the "Chat Session" pane, here you can find the 3 params required by the extension
-    
-    <img src="images/oai.png" alt="drawing" width="650"/>
-
-   
     - Endpoint (`openai.api_base`)
     - Deployment (`engine`)
     - API Key (scroll down to the bottom of the pop-up)
+    
+    <img src="images/oai.png" alt="drawing" width="650"/>
 
 3. Open VSCode Settings (File → Preferences → Settings *OR* Code → Settings → Settings), type "cptx" 
 
