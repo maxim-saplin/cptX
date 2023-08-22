@@ -29,7 +29,7 @@ Open Command Palette (**`⇧ + ⌘ + P`** on macOS, **`Ctrl + Shift + P`** on Wi
 - cptX 〉Create · Refactor
 - cptX 〉 Ask · Explain
 
-<img src="images/commands.png" alt="drawing" width="350"/>
+    <img src="images/commands.png" alt="drawing" width="350"/>
 
 ## Getting started with OpenAI
 *Prerequisites:*
@@ -70,6 +70,7 @@ Azure requires a few more steps as OpenAI models require custom deployments befo
     - Endpoint (`openai.api_base`)
     - Deployment (`engine`)
     - API Key (scroll down to the bottom of the pop-up)
+
     
     <img src="images/oai.png" alt="drawing" width="650"/>
 
