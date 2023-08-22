@@ -28,7 +28,7 @@ The extension requires OpenAI (Gpt3.5) or Azure (Gpt3.5 and Gpt4) API key/subscr
 Open Command Palette (**`⇧ + ⌘ + P`** on macOS, **`Ctrl + Shift + P`** on Windows and Linux) and type "cptx":
 - cptX 〉Create · Refactor
 - cptX 〉 Ask · Explain
-
+  
     <img src="images/commands.png" alt="drawing" width="350"/>
 
 ## Getting started with OpenAI
@@ -71,7 +71,6 @@ Azure requires a few more steps as OpenAI models require custom deployments befo
     - Deployment (`engine`)
     - API Key (scroll down to the bottom of the pop-up)
 
-    
     <img src="images/oai.png" alt="drawing" width="650"/>
 
 3. Open VSCode Settings (File → Preferences → Settings *OR* Code → Settings → Settings), type "cptx" 
