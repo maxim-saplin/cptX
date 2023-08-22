@@ -70,8 +70,9 @@ Azure requires a few more steps as OpenAI models require custom deployments befo
     - Endpoint (`openai.api_base`)
     - Deployment (`engine`)
     - API Key (scroll down to the bottom of the pop-up)
+      
 
-    <img src="images/oai.png" alt="drawing" width="650"/>
+      <img src="images/oai.png" alt="drawing" width="650"/>
 
 3. Open VSCode Settings (File → Preferences → Settings *OR* Code → Settings → Settings), type "cptx" 
 
