@@ -41,7 +41,7 @@ You need an OpenAI free trial or paid account.
 
     <img src="images/settings.png" alt="drawing" width="500"/>
     
-    - Make sure you have the API provider set to "OpenAI (Gpt3.5)" and leave Azure params empty
+   Make sure you have the API provider set to "OpenAI (Gpt3.5)" and leave Azure params empty
 
 3. Open a file in the editor and select the code of interest or put the cursor at the desired location
 4. Open up Command Palette (⇧⌘P on macOS, Ctrl + Shift + P on Windows and Linux) and type "cptx"
