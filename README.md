@@ -28,8 +28,8 @@ The extension requires OpenAI (Gpt3.5) or Azure (Gpt3.5 and Gpt4) API key/subscr
 Open Command Palette (**`⇧ + ⌘ + P`** on macOS, **`Ctrl + Shift + P`** on Windows and Linux) and type "cptx":
 - cptX 〉Create · Refactor
 - cptX 〉 Ask · Explain
-
-<img src="images/commands.png" alt="drawing" width="350"/>
+  
+    <img src="images/commands.png" alt="drawing" width="350"/>
 
 ## Getting started with OpenAI
 *Prerequisites:*
@@ -41,7 +41,7 @@ You need an OpenAI free trial or paid account.
 
     <img src="images/settings.png" alt="drawing" width="500"/>
     
-    - Make sure you have the API provider set to "OpenAI (Gpt3.5)" and leave Azure params empty
+   Make sure you have the API provider set to "OpenAI (Gpt3.5)" and leave Azure params empty
 
 3. Open a file in the editor and select the code of interest or put the cursor at the desired location
 4. Open up Command Palette (⇧⌘P on macOS, Ctrl + Shift + P on Windows and Linux) and type "cptx"
@@ -67,12 +67,12 @@ Azure requires a few more steps as OpenAI models require custom deployments befo
 1. Go to https://oai.azure.com/portal and open chat playground
     - You can click in the right top corner and pick an endpoint/resource if there're multiple
 2. Click the "View code" button under the "Chat Session" pane, here you can find the 3 params required by the extension
-    
-    <img src="images/oai.png" alt="drawing" width="650"/>
-   
     - Endpoint (`openai.api_base`)
     - Deployment (`engine`)
     - API Key (scroll down to the bottom of the pop-up)
+      
+
+      <img src="images/oai.png" alt="drawing" width="650"/>
 
 3. Open VSCode Settings (File → Preferences → Settings *OR* Code → Settings → Settings), type "cptx" 
 
