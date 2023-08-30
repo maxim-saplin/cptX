@@ -184,15 +184,16 @@ function compilePrompt(
   let messages: common.Message[] = [];
 
   let systemMessage = `You're an AI assistant acting as an expert ${expert} and capable of chained reasoning as humans do. `;
-  systemMessage += `You're providing output through a VSCode extension. `;
+  systemMessage += `You're providing yor output through a VSCode extension. `;
   systemMessage += `Your output will be inserted directly into code editor! `;
-  systemMessage += `In the next messages a user will provide you with his/her request (instructions), show the surrounding code from the file that is in currently open in the editor. `;
   systemMessage +=
-    fileName.trim().length !== 0
-      ? "The name of the file currenty open is '" + fileName + "'."
-      : "";
+  fileName.trim().length !== 0
+    ? "The name of the file currenty open is '" + fileName + "'."
+    : "";
+  systemMessage += `In the next messages a user will provide you with his/her instruction, show the surrounding code from the file that is in currently open in the editor. `;
+
   systemMessage += `\n`;
-  let instructions = `- Carefully follow the instructions\n`;
+  let instructions = `- Carefully follow the instruction\n`;
   instructions += `- Make sure that you only respond with a valid${language} code block and only with a valid${language} code block\n`;
   instructions += `- Do not return any lines that can break compilation\n`;
   instructions += `- Don't wrap you repsonse into markdown until asked specifically\n`; // quite often woth June versions of OpenAI I see mede returnig blocked wraped in MD, e.g. ```dart ...
@@ -214,23 +215,23 @@ function compilePrompt(
       `\n` +
       common.commentOutLine(
         languageId,
-        `I will only reply with valid${language} programing language syntax and wrap any free text in comments.`
-      )
+        `I will only reply with valid${language} programing language syntax and wrap any free text in comments.`) +
+      `\n`
   );
 
   const refactor = selectedCode.trim().length > 0;
+  
+  common.addUser(messages, `THE INSTRUCTION ->\n` + whatToDo);
 
-  common.addUser(messages, whatToDo);
-
-  common.addAssistant(
-    messages,
-    common.commentOutLine(languageId, `Thank you`) +
-      `\n` +
-      common.commentOutLine(
-        languageId,
-        `Awaiting for code snippets from the open file`
-      )
-  );
+  // common.addAssistant(
+  //   messages,
+  //   common.commentOutLine(languageId, `Thank you`) +
+  //     `\n` +
+  //     common.commentOutLine(
+  //       languageId,
+  //       `Awaiting for code snippets from the open file`
+  //     )
+  // );
 
   let contextExistis = aboveCode.trim().length !== 0 || belowCode.trim().length;
 
@@ -279,7 +280,7 @@ function compilePrompt(
         common.addUser(
           messages,
           (!aboveAdded ? `For the context, here's` : `And here's`) +
-            `part of the code below the selection`
+            ` part of the code below the selection`
         );
         common.addAssistant(
           messages,

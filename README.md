@@ -125,6 +125,9 @@ The extensions collect essential telemetry via standard VSCode library (https://
 
 ## Release Notes
 
+### 1.0.2
+ - Updates to 'create' prompt
+
 ### 1.0.1
  - Shorter command names
  - Updates to README

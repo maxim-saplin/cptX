@@ -300,7 +300,7 @@ function commentOutLine(languageId: string, line: string): string {
       commentedLine = `// ` + line;
       break;
     case "python":
-      commentedLine = `# "` + line;
+      commentedLine = `# ` + line;
       break;
     case "java":
       commentedLine = `// ` + line;
