@@ -1,0 +1,1 @@
+- [] Show explanation in HTML view, open it in new VSCode window

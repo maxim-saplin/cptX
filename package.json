@@ -43,7 +43,7 @@
     "explain",
     "test"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onStartupFinished"],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {

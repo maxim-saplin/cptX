@@ -5,6 +5,7 @@ import { explainOrAsk } from "./explain";
 import { Message, PromptCompleter } from "./common";
 import { getCompleter } from "./openai";
 import { initTelemetry, sendConfigurationChangedEvent } from "./telemetry";
+import { initStatusBar } from "./statusBar";
 
 export function activate(context: vscode.ExtensionContext) {
   //console.log('Congratulations, your extension "cptX" is now active!');
@@ -20,27 +21,28 @@ export function activate(context: vscode.ExtensionContext) {
       completer = getCompleter();
     }
     sendConfigurationChangedEvent(
-      vscode.workspace.getConfiguration("cptx").get<string>("apiProvider") ?? '',
-      vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ?? 2048);
+      vscode.workspace.getConfiguration("cptx").get<string>("apiProvider") ??
+        "",
+      vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ??
+        2048
+    );
   });
 
+  const createOrRefactorCommand = "cptX.createOrRefactor";
+  const explainOrAskCommand = "cptX.explainOrAsk";
+
   context.subscriptions.push(
-    vscode.commands.registerCommand("cptX.createOrRefactor", () =>
+    vscode.commands.registerCommand(createOrRefactorCommand, () =>
       createOrRefactor(completer)
     )
   );
   context.subscriptions.push(
-    vscode.commands.registerCommand("cptX.explainOrAsk", () =>
+    vscode.commands.registerCommand(explainOrAskCommand, () =>
       explainOrAsk(completer)
     )
   );
-}
 
-// Function to obfuscate the key by storing it as a byte array and recovering it as a string when asked
-function obfuscateKey(key: string): Uint8Array {
-  // Convert the key to a byte array
-  const byteArray = new TextEncoder().encode(key);
-  return byteArray;
+  initStatusBar(explainOrAskCommand, context);
 }
 
 // This method is called when your extension is deactivated
