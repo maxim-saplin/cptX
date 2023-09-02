@@ -281,6 +281,10 @@ function getExpertAndLanguage(editor: vscode.TextEditor) {
       language = "SQL";
       expert = "Database developer";
       break;
+    case "shellscript":
+        language = "Bash";
+        expert = "DevOps engineer";
+        break;
   }
 
   return { expert, language, languageId };
@@ -349,6 +353,9 @@ function commentOutLine(languageId: string, line: string): string {
       break;
     case "sql":
       commentedLine = `-- ` + line;
+      break;
+    case "shellscript":
+      commentedLine = `# ` + line;
       break;
     default:
       commentedLine = `// ` + line;

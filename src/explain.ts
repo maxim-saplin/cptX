@@ -73,7 +73,7 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
           sendExplainEvent(calculatedPromptTokens, promptTokens, completionTokens, common.getElapsedSecondsNumber(start));
           vscode.window.showInformationMessage(explanation, { modal: true });
           vscode.window.showInformationMessage(
-            `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens (${promptTokens}|${promptTokens+completionTokens})`
+            `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens sent ${promptTokens}, total ${promptTokens+completionTokens})`
           );
           debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
         }
