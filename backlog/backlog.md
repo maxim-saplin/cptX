@@ -1,1 +1,2 @@
-- [] Show explanation in HTML view, open it in new VSCode window
+- [ ] Show explanation in HTML view, open it in new VSCode window
+- [ ] User added snippets, templates, i.e. have prompt like "Add JSDoc" saved and issued in one click
