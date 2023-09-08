@@ -1,8 +1,8 @@
 # GPT 3|4 as your (almost)free copilot
 
 cptX is a headless AI coding assistant with simplicity in mind:
-- It has only 2 commands (Create and Ask)
-- No UI, just like Codewhsiperer or original CoPilot there's no Chat UI
+- 2 commands (Create and Ask)
+- No UI
 - Instruction following, you explicitly write a prompt and get the result 
 
 It is good for quick small changes on a selected code (think 'smart refactor') OR getting code advice without switching windows:

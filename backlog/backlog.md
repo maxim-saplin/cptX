@@ -1,1 +1,2 @@
 - [] Show explanation in HTML view, open it in new VSCode window
+- [] Add OS to prompt system message (along with file name)
