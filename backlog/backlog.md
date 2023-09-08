@@ -1,2 +1,5 @@
-- [] Show explanation in HTML view, open it in new VSCode window
-- [] Add OS to prompt system message (along with file name)
+
+- [ ] Show explanation in HTML view, open it in new VSCode window
+- [ ] User added snippets, templates, i.e. have prompt like "Add JSDoc" saved and issued in one click
+- [ ] Add OS to prompt system message (along with file name)
+
