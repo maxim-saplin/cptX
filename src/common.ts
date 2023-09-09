@@ -3,6 +3,7 @@ import { RequestOptions } from "https";
 import { Performance, performance } from "perf_hooks";
 import * as vscode from "vscode";
 import { getEncoding } from "js-tiktoken";
+import { pluginSettings } from "./settings";
 
 function updateProgress(
   progress: vscode.Progress<{
@@ -29,7 +30,7 @@ const isDebugMode = () => process.env.VSCODE_DEBUG_MODE === "true";
 
 const encoding = getEncoding("cl100k_base");
 function getContextSize() : number {
-  return vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ?? 2048;
+  return pluginSettings.contextSize;
 }
 // This is the number of tokens that goes in the first request leaving the rest for completion and insertion into editor
 const maxTokensInRequest = 0.67 * getContextSize();

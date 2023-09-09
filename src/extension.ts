@@ -6,6 +6,7 @@ import { Message, PromptCompleter } from "./common";
 import { getCompleter } from "./openai";
 import { initTelemetry, sendConfigurationChangedEvent } from "./telemetry";
 import { initStatusBar } from "./statusBar";
+import { pluginSettings } from "./settings";
 
 export function activate(context: vscode.ExtensionContext) {
   //console.log('Congratulations, your extension "cptX" is now active!');
@@ -21,10 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
       completer = getCompleter();
     }
     sendConfigurationChangedEvent(
-      vscode.workspace.getConfiguration("cptx").get<string>("apiProvider") ??
-        "",
-      vscode.workspace.getConfiguration("cptx").get<number>("ContextSize") ??
-        2048
+      pluginSettings.apiProvider,
+      pluginSettings.contextSize
     );
   });
 

@@ -154,6 +154,10 @@ The extensions collect essential telemetry via standard VSCode library (https://
 
 ## Release Notes
 
+### 1.0.4 
+ - Updated prompt for create action (when no code is selected and output is inserted at current cursor position)
+ - Setting to show explanation in markdown previewer rather than in standard dialog box
+
 ### 1.0.3
  - Better support of Bash and Shell scripts
 

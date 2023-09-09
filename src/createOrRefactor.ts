@@ -223,16 +223,6 @@ function compilePrompt(
   
   common.addUser(messages, `THE INSTRUCTION ->\n` + whatToDo);
 
-  // common.addAssistant(
-  //   messages,
-  //   common.commentOutLine(languageId, `Thank you`) +
-  //     `\n` +
-  //     common.commentOutLine(
-  //       languageId,
-  //       `Awaiting for code snippets from the open file`
-  //     )
-  // );
-
   let contextExistis = aboveCode.trim().length !== 0 || belowCode.trim().length;
 
   if (refactor) {
@@ -298,23 +288,18 @@ function compilePrompt(
   } 
   // NO CODE SELECTED
   else { 
-    common.addUser(
-      messages,
-      `Your code block will be inserted at the current cursor location.`
-      // TODO: decide how start and end of top line cursor possition affects the contents of above text. I.e. currently if you put curosr at the beginning of the first line the above text contains the full line
-      // (aboveCode.trim().length === 0
-      //   ? `The cursor is currently located at the top of the file.`
-      //   : belowText.trim().length === 0
-      //   ? `The cursor is currently located at the bottom of the file.`
-      //   : ``)
-    );
-    // if (above.trim().length !== 0) {
-    //   s += `after the following lines:\n\n` + above + `\n\n`;
-    // } else if (below.trim().length !== 0) {
-    //   s += `before the following lines:\n\n` + below + `\n\n`;
-    // }
+    let s = ``;
 
-    //common.addUser(messages, s);
+    // common.addUser(
+    //   messages,
+    //   `Your code block will be inserted at the current cursor location.`
+    //   // TODO: decide how start and end of top line cursor possition affects the contents of above text. I.e. currently if you put curosr at the beginning of the first line the above text contains the full line
+    //   // (aboveCode.trim().length === 0
+    //   //   ? `The cursor is currently located at the top of the file.`
+    //   //   : belowText.trim().length === 0
+    //   //   ? `The cursor is currently located at the bottom of the file.`
+    //   //   : ``)
+    // );
 
     common.addAssistant(
       messages,
@@ -322,37 +307,50 @@ function compilePrompt(
     );
 
     if (contextExistis) {
-      let aboveAdded = false;
-      if (aboveCode.trim().length !== 0) {
-        common.addUser(
-          messages,
-          `For the context, here's the code that is located abover the cursor`
-        );
-        common.addAssistant(
-          messages,
-          common.commentOutLine(languageId, "Awaiting code snippet")
-        );
-        common.addUser(messages, aboveCode);
-        aboveAdded = true;
-      }
 
-      if (belowCode.trim().length !== 0) {
-        if (aboveAdded) {
-          common.addAssistant(
-            messages,
-            common.commentOutLine(languageId, `Is there more code below?`)
-          );
-        }
-        common.addUser(
-          messages,
-          `For the context, here's the code that is located below the cursor`
-        );
-        common.addAssistant(
-            messages,
-            common.commentOutLine(languageId, "Awaiting code snippet")
-          );
-        common.addUser(messages, belowCode);
+      s +=`Your code block will be inserted at the current cursor location.`; 
+
+      if (aboveCode.trim().length !== 0) {
+        s += `\n\nIt will be inserted after this lines :\n\n` + aboveCode + `\n\n`;
+      } else if (belowCode.trim().length !== 0) {
+        s += `\n\nAnd before the following lines:\n\n` + belowCode + `\n\n`;
       }
+  
+      common.addUser(messages, s);
+      common.addUser(messages, 'Do not repeat the above/below code provided. Only return code sufficient to insert at the cursor location.');
+
+      // let aboveAdded = false;
+
+      // if (aboveCode.trim().length !== 0) {
+      //   common.addUser(
+      //     messages,
+      //     `For the context, here's the code that is located abover the cursor`
+      //   );
+      //   common.addAssistant(
+      //     messages,
+      //     common.commentOutLine(languageId, "Awaiting code snippet")
+      //   );
+      //   common.addUser(messages, aboveCode);
+      //   aboveAdded = true;
+      // }
+
+      // if (belowCode.trim().length !== 0) {
+      //   if (aboveAdded) {
+      //     common.addAssistant(
+      //       messages,
+      //       common.commentOutLine(languageId, `Is there more code below?`)
+      //     );
+      //   }
+      //   common.addUser(
+      //     messages,
+      //     `For the context, here's the code that is located below the cursor`
+      //   );
+      //   common.addAssistant(
+      //       messages,
+      //       common.commentOutLine(languageId, "Awaiting code snippet")
+      //     );
+      //   common.addUser(messages, belowCode);
+      // }
     } else {
       common.addUser(messages, "The file is currently empty");
     }

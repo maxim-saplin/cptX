@@ -6,32 +6,13 @@ import {
 } from "@azure/openai";
 import * as vscode from "vscode";
 import { Completion, Message, PromptCompleter } from "./common";
-
-function getAzureSettings(): {
-  apiProvider: string;
-  azureEndpoint: string;
-  azureDeploymentName: string;
-} {
-  const config = vscode.workspace.getConfiguration("cptx");
-  const apiProvider = config.get<string>("apiProvider");
-  const azureEndpoint = config.get<string>("AzureEndpoint");
-  const azureDeploymentName = config.get<string>("AzureDeploymentName");
-
-  return {
-    apiProvider: apiProvider ?? "",
-    azureEndpoint: azureEndpoint ?? "",
-    azureDeploymentName: azureDeploymentName ?? "",
-  };
-}
-
-function getApiKey(): string {
-  const config = vscode.workspace.getConfiguration("cptx");
-  const apiKey = config.get<string>("APIKey");
-  return apiKey ?? "";
-}
+import { pluginSettings } from "./settings";
 
 function getOpenAIApi(): { client: OpenAIClient; model: string } {
-  const key = getApiKey().trim();
+  const key = pluginSettings.apiKey;
+  const apiProvider = pluginSettings.apiProvider;
+  const azureEndpoint = pluginSettings.azureEndpoint;
+  const azureDeploymentName = pluginSettings.azureDeploymentName;
 
   if (!key) {
     throw new Error(
@@ -39,13 +20,11 @@ function getOpenAIApi(): { client: OpenAIClient; model: string } {
     );
   }
 
-  var settings = getAzureSettings();
-
-  var isAzure = settings.apiProvider === "Azure (Gpt3.5 or Gpt4)";
+  var isAzure = apiProvider === "Azure (Gpt3.5 or Gpt4)";
 
   // Check if apiProvider is set to Azure and Azure parameters are provided, throw error if not
   if (isAzure) {
-    if (!settings.azureEndpoint || !settings.azureDeploymentName) {
+    if (!azureEndpoint || !azureDeploymentName) {
       throw new Error(
         "Azure API provider is chosen for cptX extension yet Azure parameters are missing. Please check extension settings and try again."
       );
@@ -56,9 +35,9 @@ function getOpenAIApi(): { client: OpenAIClient; model: string } {
     ? new AzureKeyCredential(key)
     : new OpenAIKeyCredential(key);
   const client = isAzure
-    ? new OpenAIClient(settings.azureEndpoint, creds)
+    ? new OpenAIClient(azureEndpoint, creds)
     : new OpenAIClient(creds);
-  const model = isAzure ? settings.azureDeploymentName : "gpt-3.5-turbo";
+  const model = isAzure ? azureDeploymentName : "gpt-3.5-turbo";
 
   return { client, model };
 }
