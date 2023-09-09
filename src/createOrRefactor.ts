@@ -237,58 +237,70 @@ function compilePrompt(
 
     common.addUser(messages, selectedCode);
 
-    let aboveAdded = false;
+    //let aboveAdded = false;
 
     if (contextExistis) {
-      if (aboveCode.trim().length !== 0) {
-        common.addAssistant(
-          messages,
-          common.commentOutLine(
-            languageId,
-            `Please provide surrounding code if any`
-          )
-        );
-        common.addUser(
-          messages,
-          `For the context, here's part of the code above the selection`
-        );
-        common.addAssistant(
-          messages,
-          common.commentOutLine(languageId, "Awaiting code snippet")
-        );
-        common.addUser(messages, aboveCode);
-        aboveAdded = true;
-      }
-      if (belowCode.trim().length !== 0) {
-        let assistant = aboveAdded
-          ? `Is there more code below?`
-          : `Please provide surrounding code if any`;
-        common.addAssistant(
-          messages,
-          common.commentOutLine(languageId, assistant)
-        );
-        common.addUser(
-          messages,
-          (!aboveAdded ? `For the context, here's` : `And here's`) +
-            ` part of the code below the selection`
-        );
-        common.addAssistant(
-          messages,
-          common.commentOutLine(languageId, "Awaiting code snippet")
-        );
-        common.addUser(messages, belowCode);
-      }
+      let s = ``;
+      s +=`Your code block will be inserted at the current cursor location.`; 
 
-      common.addUser(
-        messages,
-        `Do not return in your reply and do not repeast the code provided as context.` +
-          ` By doing so you will create duplication code and break code in edotr.`
-      );
+      if (aboveCode.trim().length !== 0) {
+        s += `\n\nIt will be inserted after this lines :\n\n` + aboveCode + `\n\n`;
+      } else if (belowCode.trim().length !== 0) {
+        s += `\n\nAnd before the following lines:\n\n` + belowCode + `\n\n`;
+      }
+  
+      common.addUser(messages, s);
+      // if (aboveCode.trim().length !== 0) {
+      //   common.addAssistant(
+      //     messages,
+      //     common.commentOutLine(
+      //       languageId,
+      //       `Please provide surrounding code if any`
+      //     )
+      //   );
+      //   common.addUser(
+      //     messages,
+      //     `For the context, here's part of the code above the selection`
+      //   );
+      //   common.addAssistant(
+      //     messages,
+      //     common.commentOutLine(languageId, "Awaiting code snippet")
+      //   );
+      //   common.addUser(messages, aboveCode);
+      //   aboveAdded = true;
+      // }
+      // if (belowCode.trim().length !== 0) {
+      //   let assistant = aboveAdded
+      //     ? `Is there more code below?`
+      //     : `Please provide surrounding code if any`;
+      //   common.addAssistant(
+      //     messages,
+      //     common.commentOutLine(languageId, assistant)
+      //   );
+      //   common.addUser(
+      //     messages,
+      //     (!aboveAdded ? `For the context, here's` : `And here's`) +
+      //       ` part of the code below the selection`
+      //   );
+      //   common.addAssistant(
+      //     messages,
+      //     common.commentOutLine(languageId, "Awaiting code snippet")
+      //   );
+      //   common.addUser(messages, belowCode);
+      // }
+
+      common.addUser(messages, `Do not repeat the above/below code provided.`+
+      ` Only return code sufficient to insert in place of selection.`);
+
+      // common.addUser(
+      //   messages,
+      //   `Do not return in your reply and do not repeast the code provided as context.` +
+      //     ` By doing so you will create duplication code and break code in editor.`
+      // );
     }
   } 
   // NO CODE SELECTED
   else { 
-    let s = ``;
 
     // common.addUser(
     //   messages,
@@ -307,7 +319,7 @@ function compilePrompt(
     );
 
     if (contextExistis) {
-
+      let s = ``;
       s +=`Your code block will be inserted at the current cursor location.`; 
 
       if (aboveCode.trim().length !== 0) {

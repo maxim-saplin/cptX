@@ -6,13 +6,13 @@ import {
 } from "@azure/openai";
 import * as vscode from "vscode";
 import { Completion, Message, PromptCompleter } from "./common";
-import { pluginSettings } from "./settings";
+import { extensionSettings } from "./settings";
 
 function getOpenAIApi(): { client: OpenAIClient; model: string } {
-  const key = pluginSettings.apiKey;
-  const apiProvider = pluginSettings.apiProvider;
-  const azureEndpoint = pluginSettings.azureEndpoint;
-  const azureDeploymentName = pluginSettings.azureDeploymentName;
+  const key = extensionSettings.apiKey;
+  const apiProvider = extensionSettings.apiProvider;
+  const azureEndpoint = extensionSettings.azureEndpoint;
+  const azureDeploymentName = extensionSettings.azureDeploymentName;
 
   if (!key) {
     throw new Error(

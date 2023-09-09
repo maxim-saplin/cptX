@@ -3,7 +3,7 @@ import { RequestOptions } from "https";
 import { Performance, performance } from "perf_hooks";
 import * as vscode from "vscode";
 import { getEncoding } from "js-tiktoken";
-import { pluginSettings } from "./settings";
+import { config, extensionSettings } from "./settings";
 
 function updateProgress(
   progress: vscode.Progress<{
@@ -26,11 +26,9 @@ function updateProgress(
   return interval;
 }
 
-const isDebugMode = () => process.env.VSCODE_DEBUG_MODE === "true";
-
 const encoding = getEncoding("cl100k_base");
 function getContextSize() : number {
-  return pluginSettings.contextSize;
+  return extensionSettings.contextSize;
 }
 // This is the number of tokens that goes in the first request leaving the rest for completion and insertion into editor
 const maxTokensInRequest = 0.67 * getContextSize();
@@ -134,7 +132,7 @@ function getCodeAroundSelection(
 }
 
 function debugLog(message: any) {
-  if (isDebugMode()) {
+  if (config.isDebugMode) {
     console.log(message);
   }
 }
@@ -449,7 +447,6 @@ export {
   getExpertAndLanguage,
   getElapsedSeconds,
   getElapsedSecondsNumber,
-  isDebugMode,
   PromptCompleter,
   Completion,
   debugLog,

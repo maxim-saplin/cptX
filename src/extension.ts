@@ -6,13 +6,15 @@ import { Message, PromptCompleter } from "./common";
 import { getCompleter } from "./openai";
 import { initTelemetry, sendConfigurationChangedEvent } from "./telemetry";
 import { initStatusBar } from "./statusBar";
-import { pluginSettings } from "./settings";
+import { config, extensionSettings } from "./settings";
 
 export function activate(context: vscode.ExtensionContext) {
   //console.log('Congratulations, your extension "cptX" is now active!');
   //setLogLevel("verbose");
 
   context.subscriptions.push(initTelemetry());
+
+  config.init();
 
   var completer = getCompleter();
 
@@ -22,8 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
       completer = getCompleter();
     }
     sendConfigurationChangedEvent(
-      pluginSettings.apiProvider,
-      pluginSettings.contextSize
+      extensionSettings.apiProvider,
+      extensionSettings.contextSize
     );
   });
 

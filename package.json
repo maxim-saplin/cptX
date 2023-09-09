@@ -80,6 +80,11 @@
           "default": 4096,
           "type": "number",
           "markdownDescription": "Model contxt/window size in tokens. E.g. gpt3.5 has default context size of 4096. The larger context is available to teh plugin, the more relevant info might be packed into request."
+        },
+        "cptx.ExplanationInTab": {
+          "order": 3,
+          "type": "boolean",
+          "markdownDescription": "If true, then instead of system alert (which is lost after clicking OK) a new tab with the explanation will be open. The contents od the file will be stored at .cptx folder"
         }
       }
     },

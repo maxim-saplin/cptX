@@ -4,6 +4,8 @@ import * as common from "./common";
 import { performance } from "perf_hooks";
 import { debugLog } from "./common";
 import { sendExplainCanceledEvent, sendExplainEvent } from "./telemetry";
+import { config, extensionSettings } from "./settings";
+import path = require("path");
 
 async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
   let interval = undefined;
@@ -37,15 +39,24 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
         cancellable: true,
       },
       async (progress, token) => {
-        token.onCancellationRequested((e) => sendExplainCanceledEvent(common.getElapsedSecondsNumber(start)));
+        token.onCancellationRequested((e) =>
+          sendExplainCanceledEvent(common.getElapsedSecondsNumber(start))
+        );
         // added token parameter
         interval = common.updateProgress(progress, start);
-        let knownTokens = common.countTokens(request)+common.countTokens(selectedCode)+getEmptyPromptTokens();
-        let { aboveText, belowText, tokens: editorTextTokens } = common.getCodeAroundSelection(editor, knownTokens);
+        let knownTokens =
+          common.countTokens(request) +
+          common.countTokens(selectedCode) +
+          getEmptyPromptTokens();
+        let {
+          aboveText,
+          belowText,
+          tokens: editorTextTokens,
+        } = common.getCodeAroundSelection(editor, knownTokens);
 
         let { expert, language } = common.getExpertAndLanguage(editor);
         let calculatedPromptTokens = knownTokens + editorTextTokens;
-        const prompt = compilePrompt(
+        let {messages: prompt, interesting} = compilePrompt(
           request,
           selectedCode,
           editor.document.fileName,
@@ -55,10 +66,16 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
           language
         );
 
-        for(var m in prompt) { debugLog(prompt[m].content);};
+        for (var m in prompt) {
+          debugLog(prompt[m].content);
+        }
 
-        let {reply: explanation, promptTokens, completionTokens} = await propmptCompleter(prompt);
-        debugLog('\n↓ ↓ ↓ reply↓ ↓ ↓ \n'+explanation);
+        let {
+          reply: explanation,
+          promptTokens,
+          completionTokens,
+        } = await propmptCompleter(prompt);
+        debugLog("\n↓ ↓ ↓ reply↓ ↓ ↓ \n" + explanation);
 
         if (explanation.trim().length === 0 && !token.isCancellationRequested) {
           vscode.window.showInformationMessage(
@@ -70,12 +87,65 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
         }
         if (!token.isCancellationRequested) {
           // check if token is canceled before showing info message
-          sendExplainEvent(calculatedPromptTokens, promptTokens, completionTokens, common.getElapsedSecondsNumber(start));
-          vscode.window.showInformationMessage(explanation, { modal: true });
-          vscode.window.showInformationMessage(
-            `cptX completed operation (${common.getElapsedSeconds(start)}s). Tokens sent ${promptTokens}, total ${promptTokens+completionTokens})`
+          sendExplainEvent(
+            calculatedPromptTokens,
+            promptTokens,
+            completionTokens,
+            common.getElapsedSecondsNumber(start)
           );
-          debugLog(`\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${promptTokens+completionTokens}`);
+          if (extensionSettings.explanationInTab && config.cptxFolderUri) {
+            if (!config.cptxFolderUri) {
+              vscode.window.showErrorMessage(
+                "No cptx folder availble to store the results of explanation."
+              );
+            } else {
+              const formatDate = (date: Date): string => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                const hours = String(date.getHours()).padStart(2, "0");
+                const minutes = String(date.getMinutes()).padStart(2, "0");
+                const seconds = String(date.getSeconds()).padStart(2, "0");
+
+                return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+              };
+
+              let ddd = formatDate(new Date());
+              let fileName = `explain-${ddd}.md`;
+              let filePath = path.join(config.cptxFolderUri.fsPath, fileName);
+              let fileUri = vscode.Uri.file(filePath);
+
+              let s = explanation + `\n\n-----------------` +
+              `\n\n` +
+              `#### ` + ddd +`\n\n` +
+              `#### Request:\n`+ (request ==="" ? "explain" : request) +`\n\n` +
+               (selectedCode ? "#### Selected code:\n```"+selectedCode.trim()+"```"
+                              : "#### Code around cursor:\n```"+interesting.trim()+"```");
+
+              await vscode.workspace.fs.writeFile(
+                fileUri,
+                Buffer.from(s)
+              );
+              await vscode.commands.executeCommand(
+                        "markdown.showPreview",
+                        fileUri
+                      );
+            }
+          } else {
+            vscode.window.showInformationMessage(explanation, { modal: true });
+          }
+          vscode.window.showInformationMessage(
+            `cptX completed operation (${common.getElapsedSeconds(
+              start
+            )}s). Tokens sent ${promptTokens}, total ${
+              promptTokens + completionTokens
+            })`
+          );
+          debugLog(
+            `\nPrompt tokens (calculated|actual|total actual): ${calculatedPromptTokens}|${promptTokens}|${
+              promptTokens + completionTokens
+            }`
+          );
         }
       }
     );
@@ -113,8 +183,8 @@ function getEmptyPromptTokens(): number {
       "testcodeabove",
       "testcodebelow",
       "PHP Developer",
-      "PHP",
-    );
+      "PHP"
+    ).messages;
     const foldedPrompt = emptyPrompt.map((message) => message.content).join("");
     _emptyPromptTokens = common.countTokens(foldedPrompt);
   }
@@ -129,7 +199,7 @@ function compilePrompt(
   belowCode: string,
   expert: string,
   language: string
-): common.Message[] {
+): { messages: common.Message[]; interesting: string; } {
   if (language.trim().length !== 0) {
     language = " " + language;
   }
@@ -139,7 +209,10 @@ function compilePrompt(
   let systemMessage = `You're an AI assistant acting as an expert ${expert} and capable of chained reasoning as humans do. `;
   systemMessage += `You're providing output through a VSCode extension. `;
   systemMessage += `In the next messages a user will provide you with his/her request (instructions), show the surrounding code from the file that is in currently open in the editor. `;
-  systemMessage += fileName.trim().length !== 0 ? 'The name of the file currenty open is \''+fileName+'\'.' : '';
+  systemMessage +=
+    fileName.trim().length !== 0
+      ? "The name of the file currenty open is '" + fileName + "'."
+      : "";
   systemMessage += `Your goal is to provide advice and consultation.`;
   systemMessage += `\n`;
   systemMessage += `- Carefully follow the instructions\n`;
@@ -147,35 +220,51 @@ function compilePrompt(
 
   common.addSystem(messages, systemMessage);
 
+  if (whatToDo.trim().length === 0) {
+    whatToDo = `Please explain the code`;
+  }
+  common.addUser(messages, `Here is the request -> \n\n${whatToDo}`);
 
-  if (whatToDo.trim().length === 0) {whatToDo = `Please explain the code`;};
-  common.addUser(messages,`Here is the request -> \n\n${whatToDo}`);
+  let interesting = ``;
 
   if (selectedCode.trim().length !== 0) {
-    common.addUser(messages,
+    common.addUser(
+      messages,
       `The following code is currently selected in the editor and is in the focus of the request -> \n\n${selectedCode}`
     );
     if (aboveCode.trim().length !== 0) {
-      common.addUser(messages,`For the context, here's part of the code above the selection -> \n\n${aboveCode}`);
-  }
-  if (belowCode.trim().length !== 0) {
-    common.addUser(messages,`For the context, here's part of the code below the selection -> \n\n${belowCode}`);
-  }
+      common.addUser(
+        messages,
+        `For the context, here's part of the code above the selection -> \n\n${aboveCode}`
+      );
+    }
+    if (belowCode.trim().length !== 0) {
+      common.addUser(
+        messages,
+        `For the context, here's part of the code below the selection -> \n\n${belowCode}`
+      );
+    }
   } else {
-    common.addUser(messages,`For the context, here's the code that is currently open in the editor -> \n\n` + aboveCode + belowCode);
+    common.addUser(
+      messages,
+      `For the context, here's the code that is currently open in the editor -> \n\n` +
+        aboveCode +
+        belowCode
+    );
 
-    let interesting =
+    interesting =
       aboveCode.split("\n").slice(-5).join("\n") +
       belowCode.split("\n").slice(0, 5).join("\n");
 
     if (interesting.trim().length !== 0) {
-      interesting = `User's cursor is currently near this code -> \n\n` + interesting;
+      interesting =
+        `User's cursor is currently near this code -> \n\n` + interesting;
     }
 
-    common.addUser(messages,interesting);
+    common.addUser(messages, interesting);
   }
 
-  return messages;
+  return {messages, interesting};
 }
 
 export { explainOrAsk };

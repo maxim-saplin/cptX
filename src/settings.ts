@@ -16,11 +16,43 @@ class Settings {
     );
   }
   get contextSize(): number {
+    return vscode.workspace.getConfiguration("cptx").get("ContextSize") ?? 2048;
+  }
+  get explanationInTab(): boolean {
     return (
-      vscode.workspace.getConfiguration("cptx").get("ContextSize") ??
-      2048
+      vscode.workspace.getConfiguration("cptx").get("ExplanationInTab") || false
     );
   }
 }
 
-export const pluginSettings = new Settings();
+class Config {
+  get isDebugMode(): boolean {
+    return process.env.VSCODE_DEBUG_MODE === "true";
+  }
+
+  async init(): Promise<void> {
+    const cptxFolderUri = this.cptxFolderUri;
+    if (cptxFolderUri) {
+      try {
+        const folderExists = await vscode.workspace.fs.stat(cptxFolderUri);
+        if (!folderExists) {
+          await vscode.workspace.fs.createDirectory(cptxFolderUri);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  get cptxFolderUri(): vscode.Uri | undefined {
+    var x = vscode.workspace.workspaceFolders?.[0]?.uri;
+    if (!x) {
+      return;
+    }
+    const newUri = vscode.Uri.joinPath(x, ".cptx");
+    return newUri;
+  }
+}
+
+export const extensionSettings = new Settings();
+export const config = new Config();

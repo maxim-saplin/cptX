@@ -27,6 +27,8 @@ OpenAI (Gpt3.5) or Azure (Gpt3.5 and Gpt4) API key/subscription are required and
 - Ask for advice or an explanation
 - Timing the requests, token stats (prompt|completion)
 - Set larger model context size (e.g. use 16000 with `gpt-3.5-turbo-16k``) and utilize whole file contents
+- Showing explanation in a new tab OR a simple popup
+  - When a new tab is used history of `explain` requests is preserved
 - Choose between OpenAI and Microsoft Azure as backends
     - `gpt-3.5-turbo` model when using OpenAI, any chat model when using Azure (`gpt-35-turbo` OR `gpt4``)
 
@@ -155,8 +157,9 @@ The extensions collect essential telemetry via standard VSCode library (https://
 ## Release Notes
 
 ### 1.0.4 
- - Updated prompt for create action (when no code is selected and output is inserted at current cursor position)
- - Setting to show explanation in markdown previewer rather than in standard dialog box
+ - Updated prompts for better plug-ability of the result
+ - A new Setting to show explanation in markdown previewer rather than in standard dialog box
+ - When markdown previewer is enabled history of the explanation will be stored in .cptx folder at the root of the project
 
 ### 1.0.3
  - Better support of Bash and Shell scripts
