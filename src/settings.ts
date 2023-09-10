@@ -45,12 +45,8 @@ class Config {
   }
 
   get cptxFolderUri(): vscode.Uri | undefined {
-    var x = vscode.workspace.workspaceFolders?.[0]?.uri;
-    if (!x) {
-      return;
-    }
-    const newUri = vscode.Uri.joinPath(x, ".cptx");
-    return newUri;
+    const x = vscode.workspace.workspaceFolders?.[0]?.uri;
+    return x ? vscode.Uri.joinPath(x, ".cptx") : undefined;
   }
 }
 

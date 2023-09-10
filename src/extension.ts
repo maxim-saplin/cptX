@@ -25,7 +25,8 @@ export function activate(context: vscode.ExtensionContext) {
     }
     sendConfigurationChangedEvent(
       extensionSettings.apiProvider,
-      extensionSettings.contextSize
+      extensionSettings.contextSize,
+      extensionSettings.explanationInTab
     );
   });
 

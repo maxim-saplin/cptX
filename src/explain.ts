@@ -56,7 +56,7 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
 
         let { expert, language } = common.getExpertAndLanguage(editor);
         let calculatedPromptTokens = knownTokens + editorTextTokens;
-        let {messages: prompt, interesting} = compilePrompt(
+        let { messages: prompt, interesting } = compilePrompt(
           request,
           selectedCode,
           editor.document.fileName,
@@ -99,37 +99,29 @@ async function explainOrAsk(propmptCompleter: common.PromptCompleter) {
                 "No cptx folder availble to store the results of explanation."
               );
             } else {
-              const formatDate = (date: Date): string => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, "0");
-                const day = String(date.getDate()).padStart(2, "0");
-                const hours = String(date.getHours()).padStart(2, "0");
-                const minutes = String(date.getMinutes()).padStart(2, "0");
-                const seconds = String(date.getSeconds()).padStart(2, "0");
+              let date = new Date();
 
-                return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
-              };
-
-              let ddd = formatDate(new Date());
-              let fileName = `explain-${ddd}.md`;
+              let fileName = `explain-${common.formatDate(date)}.md`;
               let filePath = path.join(config.cptxFolderUri.fsPath, fileName);
               let fileUri = vscode.Uri.file(filePath);
 
-              let s = explanation + `\n\n-----------------` +
-              `\n\n` +
-              `#### ` + ddd +`\n\n` +
-              `#### Request:\n`+ (request ==="" ? "explain" : request) +`\n\n` +
-               (selectedCode ? "#### Selected code:\n```"+selectedCode.trim()+"```"
-                              : "#### Code around cursor:\n```"+interesting.trim()+"```");
+              let s =
+                `${explanation}\n\n-----------------\n\n` +
+                `${common.formatDate(date, true)} | ${
+                  editor.document.fileName
+                }\n\n` +
+                `#### Request:\n${request === "" ? "explain" : request}\n\n` +
+                (selectedCode
+                  ? "#### Selected code:\n```" + selectedCode.trim() + "```"
+                  : "#### Code around cursor:\n```" +
+                    interesting.trim() +
+                    "```");
 
-              await vscode.workspace.fs.writeFile(
-                fileUri,
-                Buffer.from(s)
-              );
+              await vscode.workspace.fs.writeFile(fileUri, Buffer.from(s));
               await vscode.commands.executeCommand(
-                        "markdown.showPreview",
-                        fileUri
-                      );
+                "markdown.showPreview",
+                fileUri
+              );
             }
           } else {
             vscode.window.showInformationMessage(explanation, { modal: true });
@@ -199,7 +191,7 @@ function compilePrompt(
   belowCode: string,
   expert: string,
   language: string
-): { messages: common.Message[]; interesting: string; } {
+): { messages: common.Message[]; interesting: string } {
   if (language.trim().length !== 0) {
     language = " " + language;
   }
@@ -264,7 +256,7 @@ function compilePrompt(
     common.addUser(messages, interesting);
   }
 
-  return {messages, interesting};
+  return { messages, interesting };
 }
 
 export { explainOrAsk };

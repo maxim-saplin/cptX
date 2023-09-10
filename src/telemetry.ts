@@ -74,12 +74,14 @@ function sendExplainCanceledEvent(durationSeconds: number) {
 
 function sendConfigurationChangedEvent(
   apiProvider: string,
-  contextSize: number
+  contextSize: number,
+  explanationInTab: boolean
 ) {
   if (reporter) {
     reporter.sendTelemetryEvent('configurationChanged', {
       apiProvider: apiProvider,
       contextSize: contextSize.toString(),
+      explanationInTab: explanationInTab.toString()
     });
   }
 }
