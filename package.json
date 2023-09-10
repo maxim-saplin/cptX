@@ -1,6 +1,6 @@
 {
   "name": "cptx",
-  "displayName": "cptX 〉Smart refactor via AI",
+  "displayName": "cptX 〉Smart refactoring via GPT",
   "description": "Use ChatGPT as your (aslmost)free Copilot",
   "version": "1.0.4",
   "publisher": "MaximSaplin",
@@ -85,6 +85,22 @@
           "order": 3,
           "type": "boolean",
           "markdownDescription": "If true, then instead of system alert (which is lost after clicking OK) a new tab with the explanation will be open. The contents od the file will be stored at .cptx folder"
+        }
+      }
+    },
+    "icons": {
+      "cptx-tkn": {
+        "description": "TKN glyph",
+        "default": {
+          "fontPath": "assets/cptx.woff2",
+          "fontCharacter": "\\e0"
+        }
+      },
+      "cptx-sel": {
+        "description": "SEL glyph",
+        "default": {
+          "fontPath": "assets/cptx.woff2",
+          "fontCharacter": "\\e1"
         }
       }
     },

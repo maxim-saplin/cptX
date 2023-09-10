@@ -42,9 +42,9 @@ function updateStatusBarItem(): void {
   const selected = getTokensForSelectedText();
   const total = getTotalTokensForEditor();
   if (selected > 0 || total > 0) {
-    let s = `${total} tkn`;
+    let s = `${total}$(cptx-tkn)`;
     if (selected > 0) {
-      s += ` (${selected} sel)`;
+      s += ` ${selected}$(cptx-sel)`;
     }
     cptxStatusBarItem.text = s;
     cptxStatusBarItem.show();

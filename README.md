@@ -156,6 +156,8 @@ The extensions collect essential telemetry via standard VSCode library (https://
 
 ## Release Notes
 
+### 1.0.5
+
 ### 1.0.4 
  - Updated prompts for better plug-ability of the result
  - A new Setting to show explanation in markdown previewer rather than in standard dialog box
