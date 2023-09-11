@@ -157,6 +157,7 @@ The extensions collect essential telemetry via standard VSCode library (https://
 ## Release Notes
 
 ### 1.0.5
+ - Metadata updates
 
 ### 1.0.4 
  - Updated prompts for better plug-ability of the result
