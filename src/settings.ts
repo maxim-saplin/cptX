@@ -20,7 +20,7 @@ class Settings {
   }
   get explanationInTab(): boolean {
     return (
-      vscode.workspace.getConfiguration("cptx").get("ExplanationInTab") || false
+      vscode.workspace.getConfiguration("cptx").get("ExplanationInTab") || true
     );
   }
 }

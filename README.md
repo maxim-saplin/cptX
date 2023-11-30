@@ -156,6 +156,10 @@ The extensions collect essential telemetry via standard VSCode library (https://
 
 ## Release Notes
 
+### 1.0.6
+ - Plugin dependencies updated to most recent version
+ - Opening explanation in MD previewer by default
+
 ### 1.0.5
  - Metadata updates
 
