@@ -55,8 +55,8 @@ async function getCompletion(
 
   return {
     reply,
-    promptTokens: completion.usage.promptTokens,
-    completionTokens: completion.usage.completionTokens,
+    promptTokens: completion.usage?.promptTokens || 0,
+    completionTokens: completion.usage?.completionTokens || 0,
   };
 }
 
