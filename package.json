@@ -2,7 +2,7 @@
   "name": "cptx",
   "displayName": "cptX 〉GPT Smart Refactoring",
   "description": "Use ChatGPT as your (aslmost)free Copilot",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "publisher": "MaximSaplin",
   "icon": "images/icon.png",
   "engines": {
