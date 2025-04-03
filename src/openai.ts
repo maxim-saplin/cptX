@@ -8,16 +8,21 @@ import * as vscode from "vscode";
 import { Completion, Message, PromptCompleter } from "./common";
 import { extensionSettings } from "./settings";
 
-function getOpenAIApi(): { client: OpenAIClient; model: string } {
+function getOpenAIApi(requireKey: boolean = true): { client: OpenAIClient | null; model: string } {
   const key = extensionSettings.apiKey;
   const apiProvider = extensionSettings.apiProvider;
   const azureEndpoint = extensionSettings.azureEndpoint;
   const azureDeploymentName = extensionSettings.azureDeploymentName;
 
   if (!key) {
-    throw new Error(
-      "OpenAI API key is not set for cptX extension. Please check extension settings and try again."
-    );
+    if (requireKey) {
+      throw new Error(
+        "OpenAI API key is not set for cptX extension. Please check extension settings and try again."
+      );
+    } else {
+      // Return null client when key is not required (for features like token counting)
+      return { client: null, model: "gpt-3.5-turbo" };
+    }
   }
 
   var isAzure = apiProvider === "Azure (Gpt3.5 or Gpt4)";
@@ -61,13 +66,20 @@ async function getCompletion(
 }
 
 function getCompleter(): PromptCompleter {
-  function _getCompleter(client: OpenAIClient, model: string): PromptCompleter {
-    return function (messages: Message[]): Promise<Completion> {
+  function _getCompleter(client: OpenAIClient | null, model: string): PromptCompleter {
+    return async function (messages: Message[]): Promise<Completion> {
+      if (!client) {
+        // API key is required when actually making API calls
+        throw new Error(
+          "OpenAI API key is not set for cptX extension. Please check extension settings and try again."
+        );
+      }
       return getCompletion(client, model, messages);
     };
   }
 
-  let { client, model } = getOpenAIApi();
+  // Don't require API key until an actual API call is made
+  let { client, model } = getOpenAIApi(false);
 
   return _getCompleter(client, model);
 }
