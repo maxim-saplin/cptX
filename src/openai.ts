@@ -1,14 +1,9 @@
-import {
-  AzureKeyCredential,
-  ChatMessage,
-  OpenAIClient,
-  OpenAIKeyCredential,
-} from "@azure/openai";
-import * as vscode from "vscode";
+import { OpenAI, AzureOpenAI } from "openai";
 import { Completion, Message, PromptCompleter } from "./common";
 import { extensionSettings } from "./settings";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
-function getOpenAIApi(requireKey: boolean = true): { client: OpenAIClient | null; model: string } {
+function getOpenAIApi(requireKey: boolean = true): { client: OpenAI | AzureOpenAI | null; model: string } {
   const key = extensionSettings.apiKey;
   const apiProvider = extensionSettings.apiProvider;
   const azureEndpoint = extensionSettings.azureEndpoint;
@@ -25,7 +20,7 @@ function getOpenAIApi(requireKey: boolean = true): { client: OpenAIClient | null
     }
   }
 
-  var isAzure = apiProvider === "Azure (Gpt3.5 or Gpt4)";
+  const isAzure = apiProvider === "Azure (Gpt3.5 or Gpt4)";
 
   // Check if apiProvider is set to Azure and Azure parameters are provided, throw error if not
   if (isAzure) {
@@ -36,23 +31,47 @@ function getOpenAIApi(requireKey: boolean = true): { client: OpenAIClient | null
     }
   }
 
-  const creds = isAzure
-    ? new AzureKeyCredential(key)
-    : new OpenAIKeyCredential(key);
-  const client = isAzure
-    ? new OpenAIClient(azureEndpoint, creds)
-    : new OpenAIClient(creds);
-  const model = isAzure ? azureDeploymentName : "gpt-3.5-turbo";
+  let client;
+  let model = isAzure ? azureDeploymentName : "gpt-3.5-turbo";
+  
+  if (isAzure) {
+    // For Azure OpenAI
+    const apiVersion = "2024-08-01-preview";
+    
+    client = new AzureOpenAI({
+      apiKey: key,
+      endpoint: azureEndpoint,
+      apiVersion: apiVersion,
+      deployment: azureDeploymentName,
+    });
+
+  } else {
+    client = new OpenAI({
+      apiKey: key,
+    });
+  }
 
   return { client, model };
 }
 
 async function getCompletion(
-  client: OpenAIClient,
+  client: OpenAI | AzureOpenAI,
   model: string,
-  messages: ChatMessage[] /*prompt: string*/
+  messages: Message[]
 ): Promise<Completion> {
-  const completion = await client.getChatCompletions(model, messages, {
+  // Map your custom Message type to ChatCompletionMessageParam
+  const formattedMessages = messages.map(message => {
+    // Our Message type only has role and content properties
+    // Cast to the expected role types but preserve the structure
+    return {
+      role: message.role as "system" | "user" | "assistant",
+      content: message.content
+    } as ChatCompletionMessageParam;
+  });
+
+  const completion = await client.chat.completions.create({
+    model: model,
+    messages: formattedMessages,
     temperature: 0.0,
   });
 
@@ -60,13 +79,13 @@ async function getCompletion(
 
   return {
     reply,
-    promptTokens: completion.usage?.promptTokens || 0,
-    completionTokens: completion.usage?.completionTokens || 0,
+    promptTokens: completion.usage?.prompt_tokens || 0,
+    completionTokens: completion.usage?.completion_tokens || 0,
   };
 }
 
 function getCompleter(): PromptCompleter {
-  function _getCompleter(client: OpenAIClient | null, model: string): PromptCompleter {
+  function _getCompleter(client: OpenAI | AzureOpenAI | null, model: string): PromptCompleter {
     return async function (messages: Message[]): Promise<Completion> {
       if (!client) {
         // API key is required when actually making API calls
