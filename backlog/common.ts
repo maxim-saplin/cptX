@@ -1,8 +1,6 @@
-import { OpenAIClient } from "@azure/openai";
-import { RequestOptions } from "https";
-import { Performance, performance } from "perf_hooks";
+import { performance } from "perf_hooks";
 import * as vscode from 'vscode';
-import { get_encoding } from "@dqbd/tiktoken";
+import { getEncoding } from "js-tiktoken";
 
 function updateProgress(progress: vscode.Progress<{ message?: string | undefined; increment?: number | undefined }>, start: number | undefined) {
   let progressPercent = 0;
@@ -18,7 +16,7 @@ function updateProgress(progress: vscode.Progress<{ message?: string | undefined
 
 const isDebugMode = () => process.env.VSCODE_DEBUG_MODE === "true";
 
-const encoding = get_encoding("cl100k_base");
+const encoding = getEncoding("o200k_base");
 const contextSize = vscode.workspace.getConfiguration('cptx').get<number>('ContextSize') ?? 2048;
 // This is the number of tokens that goes in the first request leaving the rest for completion and insertion into editor
 const maxTokensInRequest = 0.65*contextSize;

@@ -25,7 +25,7 @@ function updateProgress(
   return interval;
 }
 
-const encoding = getEncoding("cl100k_base");
+const encoding = getEncoding("o200k_base");
 function getContextSize() : number {
   return extensionSettings.contextSize;
 }
