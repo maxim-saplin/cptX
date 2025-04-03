@@ -20,7 +20,7 @@ function getOpenAIApi(requireKey: boolean = true): { client: OpenAI | AzureOpenA
     }
   }
 
-  const isAzure = apiProvider === "Azure (Gpt3.5 or Gpt4)";
+  const isAzure = apiProvider === "Azure (Gpt3.5 or Gpt4)" || apiProvider === "Azure OpenAI";
 
   // Check if apiProvider is set to Azure and Azure parameters are provided, throw error if not
   if (isAzure) {

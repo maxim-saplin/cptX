@@ -56,10 +56,10 @@
           "type": "string",
           "order": 0,
           "enum": [
-            "OpenAI (Gpt3.5)",
-            "Azure (Gpt3.5 or Gpt4)"
+            "OpenAI",
+            "Azure OpenAI"
           ],
-          "default": "OpenAI (Gpt3.5)",
+          "default": "OpenAI",
           "markdownDescription": "Choose the AI provider for the copilot. If Azure is selected you must provide model endpoint and deployment name"
         },
         "cptx.APIKey": {
