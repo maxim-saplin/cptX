@@ -1,12 +1,12 @@
 {
   "name": "cptx",
-  "displayName": "cptX 〉GPT Smart Refactoring",
-  "description": "Use ChatGPT as your (aslmost)free Copilot",
-  "version": "1.0.6",
+  "displayName": "cptX 〉Token Counter, AI Codegen",
+  "description": "A simplistic AI code generator with 2 commands (create, ask) and a token counter diaplyed in status bar",
+  "version": "1.0.7",
   "publisher": "MaximSaplin",
   "icon": "images/icon.png",
   "engines": {
-    "vscode": "^1.77.0"
+    "vscode": "^1.96.0"
   },
   "repository": {
     "url": "https://github.com/maxim-saplin/cptX"
@@ -132,7 +132,7 @@
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.14.0",
-    "@types/vscode": "^1.98.0",
+    "@types/vscode": "^1.96.0",
     "@typescript-eslint/eslint-plugin": "^8.29.0",
     "@typescript-eslint/parser": "^8.29.0",
     "@vscode/test-electron": "^2.4.1",

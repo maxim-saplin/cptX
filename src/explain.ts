@@ -1,4 +1,3 @@
-import { OpenAIClient } from "@azure/openai";
 import * as vscode from "vscode";
 import * as common from "./common";
 import { performance } from "perf_hooks";

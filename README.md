@@ -159,6 +159,7 @@ The extensions collect essential telemetry via standard VSCode library (https://
  - Changed tokenizer to "o200k_base"
  - Updated dependencies
  - Renamed config options for API type
+ - vacode ^1.98.0
 
 ### 1.0.6
  - Plugin dependencies updated to most recent version

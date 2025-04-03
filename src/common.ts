@@ -1,5 +1,4 @@
-import { RequestOptions } from "https";
-import { Performance, performance } from "perf_hooks";
+import {performance } from "perf_hooks";
 import * as vscode from "vscode";
 import { getEncoding } from "js-tiktoken";
 import { config, extensionSettings } from "./settings";
